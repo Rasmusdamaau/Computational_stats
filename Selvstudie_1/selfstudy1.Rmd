@@ -1,6 +1,6 @@
 ---
 title: "Selfstudy 1"
-author: ''
+author: 'Rasmus Dam, Jonas Brunholm Jensen, Asbjørn Bach Andreasen, Jonas Svejstrup Mikkelsen'
 output:
   html_document: default
   pdf_document: default
@@ -48,7 +48,7 @@ line and provide a simple Monte Carlo (MC) estimate of the probability along wit
 the MC standard error based on $100,000$ simulations.
 
 
-$P(X>4) = E[1_{X>4}] = \int_{\mathbb{R}} x f(x) 1_{x>4}  dx$
+$P(X>4) = E[1_{X>4}] = \int_{\mathbb{R}} f(x) 1_{x>4}  dx$
 
 
 ```{r}
@@ -67,12 +67,18 @@ pnorm(4, lower.tail = F)
 uniform distribution on $(0,1/4)$ and use this to obtain a more accurate MC estimate
 (report both MC estimate and MC std. error).
 
+![](opg_2.jpg)
+
 
 ```{r}
-u <- 1/dat
 
-unif_mean <- mean(u > 0) - mean(u > 0.25)
+unif_data <- runif(10000, min = 0, max = 0.25)
 
+unif_result <- 0.25 * 1/sqrt(2*pi) * exp(-1/(2*unif_data^2)) * 1/unif_data^2
+
+mean(unif_result)
+
+sd(unif_result)/sqrt(length(unif_result))
 
 ```
 
@@ -113,7 +119,7 @@ mc_rslt <- apply(centers_mc, 1, afstand_centers)
 
 mean(apply(mc_rslt, 2, min) < r)
 
-sd(apply(mc_rslt, 2, min))
+sd(apply(mc_rslt, 2, min)< r)/sqrt(100)
 
 
 ```
@@ -144,9 +150,39 @@ $\text{se}_i$ based on sample size $n_i$, $i=1,\dots,k$ which are all independen
 estimates of the same mean value. How can you construct a combined estimate and standard error based
 on the total sample size $n_{\bullet} = \sum_{j=1}^k n_i$?
 
+### Answer:
+
+We see two different ideas, a simple mean of the means, or a weighted mean of the means, weighted by $n_i$. Same for standard error.
+
+
+
 - Use `mclapply()` (or another parallel processing function) to run 10 independent
 MC estimates of the integral in problem A and use the
 formula derived above to combine these to a single MC estimate and MC std. error.
+
+```{r}
+library(parallel)
+set.seed(123)
+
+indicator_mean_para <- function(n) {
+  data <- rnorm(n)
+  return(mean(data>4))
+}
+
+vec_para <- rep(10000, 10)
+mclapply(vec_para, indicator_mean_para)
+
+# cl <- makeCluster(getOption("cl.cores", 2))
+cl <- makeCluster(2)
+para_rslt <- parSapply(cl, vec_para, indicator_mean_para)
+para_rslt
+
+microbenchmark::microbenchmark(mclapply(vec_para, indicator_mean_para),
+                               sapply(vec_para, indicator_mean_para),
+                               parSapply(cl, vec_para, indicator_mean_para), times = 5)
+stopCluster(cl)
+```
+
 
 # Rcpp
 
@@ -163,6 +199,7 @@ Given the starting state $x_0 = 0$ we wish to simulate a realization of $\{x_t\}
 containing `n` multivariate Gaussian vectors with mean vector `mu` and covariance
 matrix `Sigma` (simply check
 that the empirical covariance matrix is close to the given one for a specific 2x2 case of your choice):
+
 ```{r}
 mvrnormR <- function(mu, Sigma, n) {
   d <- length(mu)
@@ -172,14 +209,76 @@ mvrnormR <- function(mu, Sigma, n) {
 }
 ```
 
+```{r}
+
+mvnorm_data <- mvrnormR(c(1,2), matrix(c(1,0,0,4), nrow = 2), 1000)
+
+var(t(mvnorm_data))
+
+```
+
+
+
 - Use `RcppArmadillo` to implement this as a new function `mvrnormcpp()` and
 benchmark the two functions for the following input (check that they approximately have the same distribution -- you can only use `all.equal()` to check if you have managed to use the same random numbers in both cases):
+
 ```{r}
 d <- 2
 Sigma <- matrix(c(2,1,1,4), nrow = 2, ncol = 2)
 n <- 1000
 set.seed(42)
 mu <- c(10, 20)
+```
+
+
+```{r engine='Rcpp'}
+#include <RcppArmadillo.h>
+//[[Rcpp::depends(RcppArmadillo)]]
+
+using namespace Rcpp ;
+using namespace arma ;
+
+
+// [[Rcpp::export]]
+mat mvrnormRcpp(colvec mu, mat Sigma, int n) {
+  int d = mu.size();
+  mat std_norm = mat(d,n,fill::randn);
+  mat chol_sigma = chol(Sigma);
+  mat output_pre_mu = chol_sigma.t() * std_norm;
+  mat mu_reppet = mat(d,0);
+  for (int i = 0;i<n;i++){
+    mu_reppet.insert_cols(i, mu);
+  }
+  mat output = mu_reppet + output_pre_mu;
+  return output;
+}
+
+
+// [[Rcpp::export]]
+mat simcpp(mat A, mat Sigma, int n) {
+  vec mu = vec(Sigma.n_rows);
+  mu.fill(0);
+  mat errors = mvrnormRcpp(mu, Sigma, n);
+  mat simdata = mat(mu.size(),n,fill::zeros);
+  for (int i = 1; i < n; i++){
+    simdata.col(i) = A * simdata.col(i-1) + errors.col(i);
+  }
+  return simdata;
+}
+
+
+```
+
+```{r}
+
+test_1 <- mvrnormR(mu, Sigma, n)
+test_2 <- mvrnormRcpp(mu, Sigma, n)
+
+var(t(test_1))
+var(t(test_2))
+
+microbenchmark::microbenchmark(mvrnormR(mu, Sigma, n), mvrnormRcpp(mu, Sigma, n))
+
 ```
 
 Simulation of VAR(1) is obtained with the R function `simR()` below. Implement
@@ -198,3 +297,19 @@ simR <- function(A, Sigma, n) {
   return(simdata)
 }
 ```
+
+```{r}
+set.seed(42)
+Sigma <- matrix(c(2,1,1,4), nrow = 2, ncol = 2)
+n <- 100
+A <- matrix(c(0.7,0.2,0.2,0.7),2,2)
+
+simR(A, Sigma, n)
+simcpp(A, Sigma, n)
+
+microbenchmark::microbenchmark(simR(A, Sigma, n), simcpp(A, Sigma, n))
+
+
+
+```
+
