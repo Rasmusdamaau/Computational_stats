@@ -1,0 +1,105 @@
+---
+title: "Untitled"
+author: "SM"
+date: "2/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+fibR <- function(n){
+if (n==0) return(0)
+if (n==1) return(1)
+return( fibR( n-1 ) + fibR( n-2 ) )
+}
+
+cppFunction(
+"int fibC(const int x) {
+if (x == 0) return(0);
+if (x == 1) return(1);
+return (fibC(x - 1)) + fibC(x - 2);
+}")
+
+
+
+fibR2 <- function(n) {
+x = 0; y = 1; z = 1
+for (i in 1:n){
+x = y
+y = z
+z = x + y
+}
+x
+}
+
+fibR2(8)
+
+cppFunction("int fibC2(int n)
+            { int x = 0;
+            int y = 1;
+            int z = 1;
+            for (int i=0; i<n; i++){
+            x = y;
+            y = z;
+            z = x + y;
+            }
+            return (x);
+            }
+            ")
+
+
+fibC2(8)
+
+options("digits" = 2)
+f1 <- sapply(1:10, fibR2)
+f2 <- sapply(1:10, fibC2)
+## We get identical results
+all.equal( f1, f2 )
+
+library(microbenchmark)
+n <- 50
+microbenchmark(fibR(n), fibC(n),fibR2(n),fibC2(n), times=20)
+
+A <- matrix(1:6, nrow=2); x=c(1, 2, 3)
+y <- as.numeric(A %*% x)
+
+cppFunction("NumericVector Ax1_ ( NumericMatrix A , NumericVector x ){
+ int nr = A . nrow () , nc = A . ncol ();
+ NumericVector y ( nr ); // y is initalized to zero
+ for (int i =0; i < nr ; i ++){ // loop over rows
+ for (int j =0; j < nc ; j ++){
+ y [ i ] += A (i , j ) * x [ j ]; // find inner product
+ }
+ }
+ return y ;
+}"
+)
+
+y1 <- Ax1_(A,x)
+y
+
+cppFunction("NumericVector Ax2_ (NumericMatrix A , NumericVector x ){
+    int nr = A . nrow () , nc = A . ncol ();
+    NumericVector y ( nr ); // y is initalized to zero
+    for (int i = 0; i < nr; i++){
+      for (int j = 0; j < nc, i++){
+      y += A()
+      }
+    }
+    return y:
+}")
+
+
+
+
+```
+
