@@ -32,7 +32,17 @@ option_price(t, T_, sigma, r, x)
 
 ```{r}
 
+mc_option_price <- function(t,T_,sigma,r,x,N) {
+  X <- c()
+  for (i in 1:N) {
+    Z_i <- rnorm(1)
+    X[i] <- x * exp((r-sigma^2/2)*(T_ - t) + sigma * sqrt(T_ - t) * Z_i)
+  }
+  F_ <- exp(-r*(T_ - t)) * 1/N * sum(X^2)
+  return(F_)
+}
 
+mc_option_price(t,T_,sigma,r,x,10000)
 
 
 ```
