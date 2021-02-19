@@ -138,7 +138,7 @@ could be used to estimate $\pi=3.14...$ using MC.
 
 ### Answer:
 
-Using the same idea as before but with only 1 center and the appropiate r, gives the relation of the area of the circle wrt. the square. Then $\pi$ is isolated in the equation for the area of a circle, i.e $\pi = A/r^2 $.
+Using the same idea as before but with only 1 center and the appropriate r, gives the relation of the area of the circle wrt. the square. Then $\pi$ is isolated in the equation for the area of a circle, i.e $\pi =\frac{A}{r^2}$.
 
 
 
@@ -170,9 +170,12 @@ indicator_mean_para <- function(n) {
 }
 
 vec_para <- rep(10000, 10)
-mclapply(vec_para, indicator_mean_para)
+result <- mclapply(vec_para, indicator_mean_para);result
 
-# cl <- makeCluster(getOption("cl.cores", 2))
+mean(unlist(result))
+sd(unlist(result))/sqrt(length(unlist(result)))
+
+
 cl <- makeCluster(2)
 para_rslt <- parSapply(cl, vec_para, indicator_mean_para)
 para_rslt
