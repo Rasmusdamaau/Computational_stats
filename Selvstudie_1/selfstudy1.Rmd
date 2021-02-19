@@ -307,6 +307,9 @@ Sigma <- matrix(c(2,1,1,4), nrow = 2, ncol = 2)
 n <- 100
 A <- matrix(c(0.7,0.2,0.2,0.7),2,2)
 
+
+# The results are not equal for the two methods, we have tried with different methods of setting the seed, however we can't figure out how to get them to be equal. We have however tried using matrices filled with 1's and using those we achieved the same paths for both the R and Rcpp implementation.
+
 simR(A, Sigma, n)
 simcpp(A, Sigma, n)
 
