@@ -1,0 +1,35 @@
+---
+title: "JJB_Lect_6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sde)
+```
+
+
+```{r Opgave 2. 1}
+
+
+set.seed(69)
+n <- 1000
+T <- 1
+x_0 <- 1
+d <- expression((1+x)*(1+x^2))
+s <- expression(1+x^2)
+sx <- expression(2*x)
+Delta <- T/n
+
+
+Xsdesim <- sde.sim(method ='euler',t0 = 0, T=1, X0 = x_0, N = n , 
+                       delta = Delta , drift = d , sigma =s, sigma.x = sx)
+
+plot.ts(Xsdesim)
+
+
+```
+
+
+
