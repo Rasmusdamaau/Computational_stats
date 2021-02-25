@@ -1,0 +1,88 @@
+---
+title: "opgaver_lektion_6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+```
+
+
+
+```{r}
+
+
+sim_BM <- function(T_, delta) {
+  tmesh <- seq(from = 0, to = T_, by = delta)
+  N <- length(tmesh)
+  step <- delta * T_
+  Norm <- rnorm(N)
+  B <- c(0,cumsum(sqrt(step) * Norm[-N]))
+  output <- data.frame(B = B, Norm = Norm)
+  return(output)
+  # plot(x = tmesh, y = B, type = "l")
+}
+
+
+
+b <- function(t, X_t) {
+  (1 + X_t)*(1+X_t^2)
+}
+
+sigma <- function(t, X_t) {
+  1+X_t^2
+}
+
+sigma_dif <- function(t, X_t) {
+  2*X_t
+}
+
+sigma_sigma_dif <- function(t, X_t) {
+  2*X_t + 2*X_t^3
+}
+
+
+Milstein_scheme <- function(delta, T_ = 1, b, sigma,sigma_sigma_dif, x_0 = 0) {
+  N_n <- ceiling(T_ / delta)
+  tmesh <- seq(from = 0, to = T_,by = delta)
+  sim_BM_result <- sim_BM(T_, delta)
+  B <- sim_BM_result$B
+  # Norm <- sim_BM_result$Norm
+  X <- c(x_0)
+  X_2 <- c(x_0)
+  step <- delta * T_
+  for (k in 2:(N_n+1)) {
+    X[k] <- X[k-1] + b(k,X[k-1]) * step + sigma(k,X[k-1]) * (B[k] - B[k-1]) +
+      1/2 * sigma(k-1,X[k-1]) * sigma_dif(k-1, X[k-1]) * ((B[k] - B[k-1])^2 - step)
+    X[k] <- X[k-1] + b(k,X[k-1]) * step + sigma(k,X[k-1]) * (B[k] - B[k-1]) +
+      1/2 * sigma(k,X[k-1]) * msigma(k, X[k-1]) * ((B[k]-B[k-1])^2 - step)
+    X_2[k] <- tan(atan(X_2[1]) + tmesh[k] + B[k])
+  }
+  output <- data.frame(sim_sol = X, real_sol = X_2)
+  return(output)
+}
+
+set.seed(6969)
+
+delta_pre <- 1/1000
+T_ <- 1
+result <- Milstein_scheme(delta = delta_pre,
+                          T_ = T_,
+                          b = b,
+                          sigma = sigma,
+                          sigma_sigma_dif = sigma_sigma_dif,
+                          x_0 = 1)
+result
+
+
+ggplot(data = result, aes(x=seq(0,T_, by =delta_pre))) +
+  geom_line(aes(y = sim_sol), color = "red") +
+  geom_line(aes(y = real_sol))
+
+qplot(x = seq(0,T_, by =delta_pre), y = result$real_sol)
+
+
+```
+
