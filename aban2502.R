@@ -14,7 +14,7 @@ sim_BM <- function(T_, delta) {
 
 
 b <- function(t, X_t) {
-  -X_t
+  (1 + X_t)*(1+X_t^2)
 }
 
 sigma <- function(t, X_t) {
@@ -60,6 +60,7 @@ Milstein_scheme <- function(delta, T_ = 1, b, sigma, msigma, x_0 = 0) {
   output <- data.frame(sim_sol = X, real_sol = X_2)
   return(output)
 }
+library(tidyverse)
 
 delta <- 1/10
 
@@ -86,7 +87,5 @@ set.seed(69)
 
 
 
-library(tidyverse)
 
 
-# plot.ts(result)
