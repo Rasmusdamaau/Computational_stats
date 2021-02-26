@@ -1,0 +1,109 @@
+---
+title: "SS_1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Exercise 2.
+
+Parameters:
+
+$$  \lambda = x = \bar{\sigma} = T = 1. $$
+
+### 1, 2
+
+By Using a Riemann approximation of $ \int_0^t Z_s ds$, write a code that simulates (with error) the exact solution of $(1)$ (i.e. (2)) on an equally spaced grid of $[0,1]$ given by
+
+$$t_k = \frac{k}{n}, \quad k = 0, \ldots, n, \quad n \in \mathbb{N}.$$
+
+
+Plot simulated paths for $n = 10000$.
+
+
+```{r}
+
+set.seed(1)
+
+
+sim_BM <- function(T_, delta) {
+  tmesh <- seq(from = 0, to = T_, by = delta)
+  N <- length(tmesh)
+  step <- delta * T_
+  Norm <- rnorm(N)
+  B <- c(0, cumsum(sqrt(step) * Norm[-N]))
+  output <- data.frame(B = B, Norm = Norm)
+  return(output)
+}
+
+b <- function(t, X_t, B) {
+  exp(0.5 * t + B)
+}
+
+approx_integral_exact_solution <- function(delta, T_ = 1, b, sigma, x_0 = 0) {
+  N_n <- ceiling(T_ / delta)
+  tmesh <- seq(from = 0, to = T_, by = delta)
+  sim_BM_result <- sim_BM(T_, delta)
+  B <- sim_BM_result$B
+  X <- c(x_0)
+  step <- delta * T_
+  for (k in 2:(N_n + 1)) {
+    X[k] <- X[k - 1] + b(tmesh[k], X[k - 1], B[k - 1]) * step
+  }
+  XX <- b(t = tmesh, X_t = 0, B = B) / (1 + X)
+  output <- data.frame(X = XX)
+  return(output)
+}
+
+XX <- approx_integral_exact_solution(
+  delta = 1 / 10000,
+  T_ = 1,
+  b = b,
+  sigma = sigma,
+  x_0 = 1
+)
+plot.ts(XX)
+```
+
+### 3
+
+Approximate (1) with Euler Scheme
+
+
+```{r}
+
+
+b <- function(t, X_t) {
+  X_t - X_t^2
+}
+
+sigma <- function(t, X_t) {
+  X_t
+}
+
+Euler_scheme <- function(delta, T_ = 1, b, sigma, x_0 = 0) {
+  N_n <- ceiling(T_ / delta)
+  tmesh <- seq(from = 0, to = T_, by = delta)
+  sim_BM_result <- sim_BM(T_, delta)
+  B <- sim_BM_result$B
+  X <- c(x_0)
+  step <- delta * T_
+  for (k in 2:(N_n-1)) {
+    X[k] <- X[k-1] + b(tmesh[k-1],X[k-1])*step + sigma(tmesh[k-1],X[k-1])*(B[k] - B[k-1])
+  }
+  output <- data.frame(sim_sol = X)
+  return(output)
+}
+
+XX_sim <- Euler_scheme(delta = 1/10000, T_ = 1,b = b,sigma = sigma,x_0 = 1)
+
+plot.ts(XX_sim)
+
+par(mfrow(1,2))
+
+```
+

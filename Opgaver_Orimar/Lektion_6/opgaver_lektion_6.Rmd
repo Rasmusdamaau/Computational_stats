@@ -44,7 +44,7 @@ sigma_sigma_dif <- function(t, X_t) {
 }
 
 
-Milstein_scheme <- function(delta, T_ = 1, b, sigma,sigma_sigma_dif, x_0 = 0) {
+Milstein_scheme <- function(delta, T_ = 1, b, sigma,sigma_dif,sigma_sigma_dif, x_0 = 0) {
   N_n <- ceiling(T_ / delta)
   tmesh <- seq(from = 0, to = T_,by = delta)
   sim_BM_result <- sim_BM(T_, delta)
@@ -53,18 +53,15 @@ Milstein_scheme <- function(delta, T_ = 1, b, sigma,sigma_sigma_dif, x_0 = 0) {
   X <- c(x_0)
   X_2 <- c(x_0)
   step <- delta * T_
-  for (k in 2:(N_n+1)) {
+  for (k in 2:(N_n)) {
     X[k] <- X[k-1] + b(k,X[k-1]) * step + sigma(k,X[k-1]) * (B[k] - B[k-1]) +
       1/2 * sigma(k-1,X[k-1]) * sigma_dif(k-1, X[k-1]) * ((B[k] - B[k-1])^2 - step)
-    X[k] <- X[k-1] + b(k,X[k-1]) * step + sigma(k,X[k-1]) * (B[k] - B[k-1]) +
-      1/2 * sigma(k,X[k-1]) * msigma(k, X[k-1]) * ((B[k]-B[k-1])^2 - step)
     X_2[k] <- tan(atan(X_2[1]) + tmesh[k] + B[k])
   }
   output <- data.frame(sim_sol = X, real_sol = X_2)
   return(output)
 }
 
-set.seed(6969)
 
 delta_pre <- 1/1000
 T_ <- 1
@@ -72,9 +69,27 @@ result <- Milstein_scheme(delta = delta_pre,
                           T_ = T_,
                           b = b,
                           sigma = sigma,
+                          sigma_dif = sigma_dif,
                           sigma_sigma_dif = sigma_sigma_dif,
                           x_0 = 1)
 result
+
+result <- list()
+ggplots <- list()
+for (i in 1:9) {
+  result <- Milstein_scheme(delta = delta_pre,
+                          T_ = T_,
+                          b = b,
+                          sigma = sigma,
+                          sigma_dif = sigma_dif,
+                          sigma_sigma_dif = sigma_sigma_dif,
+                          x_0 = 1)
+  
+  ggplots[[i]] <- ggplot(data = result, aes(x = seq_along(result$real_sol))) + geom_line(y = result$real_sol, data = result) + 
+    geom_line(y = result$sim_sol, color = "red", data = result)
+}
+
+gridExtra::grid.arrange(ggplots[[1]])
 
 
 ggplot(data = result, aes(x=seq(0,T_, by =delta_pre))) +
