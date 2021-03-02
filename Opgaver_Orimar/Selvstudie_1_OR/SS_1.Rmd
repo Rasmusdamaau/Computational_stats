@@ -5,6 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(magrittr)
 ```
 
 
@@ -100,21 +101,30 @@ plot_sde <- function(n) {
   plot.ts(XX$euler)
   plot.ts(XX$milstein)
 }
+
+
+plot_sde(10)
+plot_sde(100)
 plot_sde(1000)
+plot_sde(10000)
 
 
-# XX <- approx_integral_exact_solution_Euler_sol_Milstein_sol(
-#   delta = 1 / 10000,
-#   T_ = 1,
-#   b = b,
-#   sigma = sigma,
-#   x_0 = 1,
-#   Z_t = Z_t,
-#   sigma_dif = sigma_dif
-# )
-#
-# par(mfrow = c(3,1))
-# plot.ts(XX$exact)
-# plot.ts(XX$euler)
-# plot.ts(XX$milstein)
+# Exercise 6.
+MC <- list()
+
+for (variable in vector) {
+  
+}
+
+approx_integral_exact_solution_Euler_sol_Milstein_sol(
+    delta = 1 / 1,
+    T_ = 1,
+    b = b,
+    sigma = sigma,
+    x_0 = 1,
+    Z_t = Z_t,
+    sigma_dif = sigma_dif
+  )
+
+
 ```
