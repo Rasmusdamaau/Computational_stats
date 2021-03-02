@@ -157,4 +157,4 @@ ggplot(data = plot_data_mc_est_compa, aes(x = n)) +
 
 ## Exercise 3 and 4
 
-<embed src="ex_4_5.pdf" type="application/pdf" height="800" width="900" />
+<embed src="ex_3_4.pdf" type="application/pdf" height="800" width="900" />
