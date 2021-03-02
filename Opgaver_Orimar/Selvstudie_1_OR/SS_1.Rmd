@@ -6,6 +6,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(magrittr)
+library(tidyverse)
 ```
 
 
@@ -100,6 +101,7 @@ plot_sde <- function(n) {
   plot.ts(XX$exact)
   plot.ts(XX$euler)
   plot.ts(XX$milstein)
+  par(mfrow= c(1,1))
 }
 
 
@@ -110,21 +112,44 @@ plot_sde(10000)
 
 
 # Exercise 6.
-MC <- list()
-
-for (variable in vector) {
-  
+afstand_max <- function(a, b) {
+  dist <- abs(a - b)^2
+  max(dist)
 }
 
-approx_integral_exact_solution_Euler_sol_Milstein_sol(
-    delta = 1 / 1,
-    T_ = 1,
-    b = b,
-    sigma = sigma,
-    x_0 = 1,
-    Z_t = Z_t,
-    sigma_dif = sigma_dif
-  )
+
+MC_estimate_comparison <- function(n, MC_n) {
+  MC <- data.frame()
+  
+  for (i in 1:MC_n) {
+    output <- approx_integral_exact_solution_Euler_sol_Milstein_sol(
+      delta = 1 / n,
+      T_ = 1,
+      b = b,
+      sigma = sigma,
+      x_0 = 1,
+      Z_t = Z_t,
+      sigma_dif = sigma_dif
+    )
+    MC[i, "Euler"] <- afstand_max(output$exact, output$euler)
+    MC[i, "Milstein"] <- afstand_max(output$exact, output$milstein)
+  }
+
+  output_data <- data.frame(n = n, Euler_mean_dist = mean(MC$Euler), Milstein_mean_dist = mean(MC$Milstein))
+  return(output_data)
+}
+
+comp_1 <- MC_estimate_comparison(1, 1000);comp_1
+comp_10 <- MC_estimate_comparison(10, 1000);comp_10
+comp_50 <- MC_estimate_comparison(50, 1000);comp_50
+comp_100 <- MC_estimate_comparison(100, 1000):comp_100
+
+plot_data_mc_est_compa <- bind_rows(comp_1,comp_10,comp_50,comp_100)
+
+ggplot(data = plot_data_mc_est_compa, aes(x = n)) +
+  geom_point(aes(y = Euler_mean_dist), color = "red") +
+  geom_point(aes(y = Milstein_mean_dist), color = "blue")
+
 
 
 ```
