@@ -10,6 +10,7 @@ library(tidyverse)
 library(sde)
 ```
 
+
 ## Exercise 1.
 
 ![ ](1_1.png)
@@ -17,7 +18,9 @@ library(sde)
 ![ ](1_3.png)
 ![ ](1_4.png)
 
+### Strong solution argument:
 
+It is a strong solution, since $X$ is determined with respect to the same Brownian motion $B$ as the one defining the SDE, and thus $X$ is adapted to the natural filtration of $B$.
 
 
 ## Exercise 2.
@@ -170,7 +173,7 @@ ggplot(data = plot_data_mc_est_compa, aes(x = n)) +
 <embed src="ex_3_4.pdf" type="application/pdf" height="800" width="900" />
 
 
-
+### Last part of exercise 4
 
 ```{r}
 
