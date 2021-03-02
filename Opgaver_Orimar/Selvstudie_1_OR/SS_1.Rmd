@@ -218,15 +218,13 @@ Euler_scheme <- function(delta, T_ = 1) {
   
   return(X_2)
 
-  # output <- data.frame(
-  #   exact = XX,
-  #   euler = X_2,
-  #   milstein = X_3
-  # )
-  # return(output)
 }
 
-Euler_scheme(delta = 1/1000, T_ = 1) %>% plot.ts()
-
+Euler_scheme(delta = 1 / 1000, T_ = 1) %>% plot.ts()
+data_mean_Euler_scheme <- c()
+for (i in 1:10000) {
+  data_mean_Euler_scheme[i] <- max(last(Euler_scheme(delta = 1 / 1000, T_ = 1)) - 1, 0)
+}
+mean(data_mean_Euler_scheme)
 
 ```
