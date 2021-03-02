@@ -142,7 +142,7 @@ MC_estimate_comparison <- function(n, MC_n) {
 comp_1 <- MC_estimate_comparison(1, 1000);comp_1
 comp_10 <- MC_estimate_comparison(10, 1000);comp_10
 comp_50 <- MC_estimate_comparison(50, 1000);comp_50
-comp_100 <- MC_estimate_comparison(100, 1000):comp_100
+comp_100 <- MC_estimate_comparison(100, 1000);comp_100
 
 plot_data_mc_est_compa <- bind_rows(comp_1,comp_10,comp_50,comp_100)
 
@@ -153,3 +153,8 @@ ggplot(data = plot_data_mc_est_compa, aes(x = n)) +
 
 
 ```
+
+
+## Exercise 3 and 4
+
+<embed src="ex_4_5.pdf" type="application/pdf" height="800" width="900" />
