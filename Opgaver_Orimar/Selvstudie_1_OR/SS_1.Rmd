@@ -7,7 +7,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(magrittr)
 library(tidyverse)
-library(sde)
 ```
 
 
@@ -212,15 +211,14 @@ Euler_scheme <- function(delta, T_ = 1) {
     X[k] <- X[k - 1] + b_V(tmesh[k], X[k - 1]) * step +
       sigma_V(tmesh[k], X[k - 1]) * (B_2[k] - B_2[k - 1])
   }
-  
+
   for (k in 2:(N_n + 1)) {
     X_2[k] <- X_2[k - 1] + b_S(tmesh[k], X_2[k - 1]) * step +
-      sigma_S_1(tmesh[k], X_2[k - 1], X[k-1]) * (B_1[k] - B_1[k - 1]) +
-      sigma_S_2(tmesh[k], X_2[k-1], X[k-1]) * (B_2[k] - B_2[k-1])
+      sigma_S_1(tmesh[k], X_2[k - 1], X[k - 1]) * (B_1[k] - B_1[k - 1]) +
+      sigma_S_2(tmesh[k], X_2[k - 1], X[k - 1]) * (B_2[k] - B_2[k - 1])
   }
-  
-  return(X_2)
 
+  return(X_2)
 }
 
 Euler_scheme(delta = 1 / 1000, T_ = 1) %>% plot.ts()
@@ -229,5 +227,4 @@ for (i in 1:10000) {
   data_mean_Euler_scheme[i] <- max(last(Euler_scheme(delta = 1 / 1000, T_ = 1)) - 1, 0)
 }
 mean(data_mean_Euler_scheme)
-
 ```
