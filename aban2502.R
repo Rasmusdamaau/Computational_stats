@@ -1,4 +1,4 @@
-
+library(tidyverse)
 
 sim_BM <- function(T_, delta) {
   tmesh <- seq(from = 0, to = T_, by = delta)
@@ -14,15 +14,15 @@ sim_BM <- function(T_, delta) {
 
 
 b <- function(t, X_t) {
-  (1 + X_t)*(1+X_t^2)
+  1
 }
 
 sigma <- function(t, X_t) {
-  1+X_t^2
+  X_t
 }
 
 msigma <- function(t, X_t){
-  2*X_t
+  1
 }
 
 Euler_scheme <- function(delta, T_ = 1, b, sigma, x_0 = 0) {
@@ -43,6 +43,16 @@ Euler_scheme <- function(delta, T_ = 1, b, sigma, x_0 = 0) {
 }
 
 
+delta <- 1/1000
+
+result <- Euler_scheme(delta=delta, T_=1, b=b, sigma=sigma, x_0=1)
+ggplot(data = result, aes(x=seq_len(nrow(result)), y = sim_sol)) +
+  geom_line(color = "red") +
+  geom_line(aes(x=seq_len(nrow(result)), y = real_sol))
+
+
+
+
 Milstein_scheme <- function(delta, T_ = 1, b, sigma, msigma, x_0 = 0) {
   N_n <- ceiling(T_ / delta)
   tmesh <- seq(from = 0, to = T_, by = delta)
@@ -60,21 +70,9 @@ Milstein_scheme <- function(delta, T_ = 1, b, sigma, msigma, x_0 = 0) {
   output <- data.frame(sim_sol = X, real_sol = X_2)
   return(output)
 }
-library(tidyverse)
 
-delta <- 1/10
 
-mm <- Milstein_scheme(delta=delta, T_=1, b=b, sigma=sigma, msigma=msigma, x_0=0)
-ggplot(data = mm, aes(x=seq_len(nrow(mm)), y = sim_sol)) +
-  geom_line(color = "red") +
-  geom_line(aes(x=seq_len(nrow(mm)), y = real_sol))
-
-delta <- 1/100
-
-mm <- Milstein_scheme(delta=delta, T_=1, b=b, sigma=sigma, msigma=msigma, x_0=0)
-ggplot(data = mm, aes(x=seq_len(nrow(mm)), y = sim_sol)) +
-  geom_line(color = "red") +
-  geom_line(aes(x=seq_len(nrow(mm)), y = real_sol))
+set.seed(1)
 
 delta <- 1/1000
 
@@ -83,7 +81,7 @@ ggplot(data = mm, aes(x=seq_len(nrow(mm)), y = sim_sol)) +
   geom_line(color = "red") +
   geom_line(aes(x=seq_len(nrow(mm)), y = real_sol))
 
-set.seed(69)
+
 
 
 
