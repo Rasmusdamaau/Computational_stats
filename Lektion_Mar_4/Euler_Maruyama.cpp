@@ -6,7 +6,7 @@ using namespace arma ;
 
 // [[Rcpp::export]]
 vec EM_cpp(double alpha, double sigma, double Deltat, NumericVector DeltaW, double S1) {
-  int N = 2^7;
+  int N = pow(2,7);
   vec Y(N, fill::zeros);
   Y[0] = S1;
   for (int i = 0; i < N; ++i) {
