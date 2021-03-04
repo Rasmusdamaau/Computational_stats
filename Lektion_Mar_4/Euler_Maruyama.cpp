@@ -1,19 +1,19 @@
-#include <RcppArmadillo.h>
-//[[Rcpp::depends(RcppArmadillo)]]
+#include <Rcpp.h>
 
 using namespace Rcpp ;
-using namespace arma ;
+
 
 // [[Rcpp::export]]
-vec EM_cpp(double alpha, double sigma, double Deltat, NumericVector DeltaW, double S1) {
-  int N = pow(2,7);
-  vec Y(N, fill::zeros);
+NumericVector EM_cpp(double alpha, double sigma, double Deltat, NumericVector DeltaW, double S1) {
+  int N = DeltaW.size();
+  NumericVector Y(N+1);
   Y[0] = S1;
   for (int i = 0; i < N; ++i) {
     Y[i+1] = Y[i] + alpha * Y[i] * Deltat + sigma * Y[i] * DeltaW[i];
     }
   return Y;
 }
+
 
 /*** R
 N <- 2^7
@@ -43,6 +43,8 @@ microbenchmark::microbenchmark(
   res_cpp <- EM_cpp(alpha, sigma, Deltat, DeltaW, S[1]),
   times = 10
 )
+res_R <- EM_R(alpha, sigma, Deltat, DeltaW, S[1])
+res_cpp <- EM_cpp(alpha, sigma, Deltat, DeltaW, S[1])
 all.equal(res_R, res_cpp)
 Y <- res_R
 matplot(t, cbind(S,Y), type = "l", col = 1:2)
