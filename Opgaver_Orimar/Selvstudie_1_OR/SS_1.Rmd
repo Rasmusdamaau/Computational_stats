@@ -70,15 +70,16 @@ sigma_dif <- function(t, X_t) {
 }
 
 approx_integral_exact_solution_Euler_sol_Milstein_sol <- function(delta, T_ = 1, b, sigma, x_0 = 0, Z_t, sigma_dif) {
-  N_n <- ceiling(T_ / delta)
   tmesh <- seq(from = 0, to = T_, by = delta)
+  N_n <- length(tmesh)
+  # N_n <- ceiling(T_ / delta)
   sim_BM_result <- sim_BM(T_, delta)
   B <- sim_BM_result$B
   X <- c(0)
   X_2 <- c(x_0)
   X_3 <- c(x_0)
   step <- delta * T_
-  for (k in 2:(N_n + 1)) {
+  for (k in 2:(N_n)) {
     # Approximate integral
     X[k] <- X[k - 1] + Z_t(tmesh[k], B[k - 1]) * step
     # Euler scheme
@@ -97,6 +98,7 @@ approx_integral_exact_solution_Euler_sol_Milstein_sol <- function(delta, T_ = 1,
   )
   return(output)
 }
+
 
 plot_sde <- function(n) {
   XX <- approx_integral_exact_solution_Euler_sol_Milstein_sol(
@@ -145,8 +147,10 @@ MC_estimate_comparison <- function(n, MC_n) {
     MC[i, "Euler"] <- afstand_max(output$exact, output$euler)
     MC[i, "Milstein"] <- afstand_max(output$exact, output$milstein)
   }
-
-  output_data <- data.frame(n = n, Euler_mean_dist = mean(MC$Euler), Milstein_mean_dist = mean(MC$Milstein))
+  
+  output_data <- data.frame(n = n,
+                            Euler_mean_dist = mean(MC$Euler),
+                            Milstein_mean_dist = mean(MC$Milstein))
   return(output_data)
 }
 
@@ -163,7 +167,24 @@ plot_data_mc_est_compa <- bind_rows(comp_1, comp_10, comp_50, comp_100)
 
 ggplot(data = plot_data_mc_est_compa, aes(x = n)) +
   geom_point(aes(y = Euler_mean_dist), color = "red") +
-  geom_point(aes(y = Milstein_mean_dist), color = "blue")
+  geom_point(aes(y = Milstein_mean_dist), color = "blue") +
+  labs(y = "dist")
+
+
+
+data <- data.frame()
+
+for (i in 1:100) {
+  MC_estimate_comparison_data <- suppressWarnings(MC_estimate_comparison(i,1000))
+  data <- bind_rows(data, MC_estimate_comparison_data)
+}
+
+ggplot(data = data, aes(x = n)) +
+  geom_line(aes(y = Euler_mean_dist), color = "red") +
+  geom_line(aes(y = Milstein_mean_dist), color = "blue") +
+  labs(y = "dist")
+
+
 ```
 
 
