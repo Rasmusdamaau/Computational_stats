@@ -1,0 +1,33 @@
+---
+title: "Exercises_09_03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sde)
+library(stats4)
+set.seed(123)
+
+
+
+dcOU <- function (x , t , x0 , theta , log = FALSE ){
+  Ex <- theta [1] / theta [2]+(x0 - theta[1] / theta[2]) * exp (-theta[2] * t)
+  Vx <- theta[3]^2 * (1-exp(-2 * theta[2] * t)) / (2 * theta[2])
+dnorm(x, mean = Ex, sd = sqrt(Vx), log = log)
+
+OU.lik <- function(theta1, theta2, theta3){
+n <- length(X)
+dt <- deltat(X)
+- sum (dcOU(X[2:n], dt, X[1:(n-1)], c(theta1, theta2, theta3), log = TRUE ))
+}
+
+X <- sde.sim(model = "OU", theta = c(3,1,2), N = 1000 , delta = 1)
+
+
+
+```
+
