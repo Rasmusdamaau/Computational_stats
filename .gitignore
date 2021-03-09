@@ -27,3 +27,4 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 Computational_stats.Rproj
+Lecture8_ex.cpp
