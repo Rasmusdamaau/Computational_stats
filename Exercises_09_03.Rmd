@@ -39,9 +39,8 @@ theta2vec <- rep(0, nsim)
 theta3vec <- rep(0, nsim)
 cov <- matrix(rep(0,9), ncol = 3, nrow = 3)
 for (i in 1:nsim) {
-    X <- suppressMessages(sde.sim(model = "OU", theta = c(3,1,2), N = 1000 , delta = 1))
+    X <<- suppressMessages(sde.sim(model = "OU", theta = c(3,1,2), N = 1000 , delta = 1))
     fit <- mle(OU.lik, start = list(theta1 = 1, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf,0,0))
-    print(fit)
     cov <- vcov(fit) + cov
     theta1vec[i] <- coef(fit)[[1]]
     theta2vec[i] <- coef(fit)[[2]]
