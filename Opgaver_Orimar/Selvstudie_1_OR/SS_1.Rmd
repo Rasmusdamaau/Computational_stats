@@ -1,6 +1,7 @@
 ---
-title: "SS_1"
+title: "Selfstudy 1, OR"
 output: html_document
+author: "Rasmus Dam, Jonas Svejstrup Mikkelsen, Jonas Brunholm Jensen, Asbjørn Bach Andreassen"
 ---
 
 ```{r setup, include=FALSE}
