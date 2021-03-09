@@ -1,0 +1,58 @@
+---
+title: "JJB_Lect_9_Ege"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sde)
+library(stats4)
+set.seed(123)
+
+
+#The example in the book
+dcOU <- function (x , t , x0 , theta , log = FALSE ){
+  Ex <- theta [1] / theta [2]+(x0 - theta[1] / theta[2]) * exp (-theta[2] * t)
+  Vx <- theta[3]^2 * (1-exp(-2 * theta[2] * t)) / (2 * theta[2])
+dnorm(x, mean = Ex, sd = sqrt(Vx), log = log)
+}
+
+OU.lik <- function(theta1, theta2, theta3){
+n <- length(X)
+dt <- deltat(X)
+- sum (dcOU(X[2:n], dt, X[1:(n-1)], c(theta1, theta2, theta3), log = TRUE ))
+}
+
+X <- sde.sim(model = "OU", theta = c(3,1,2), N = 1000 , delta = 1)
+
+fit <- mle(OU.lik, start = list(theta1 = 1, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf,0,0))
+
+summary(fit)
+#Repetitions
+nsim <- 100
+OU_est <- function(nsim=100){
+theta1vec <- rep(0, nsim)
+theta2vec <- rep(0, nsim)
+theta3vec <- rep(0, nsim)
+cov <- matrix(rep(0,9), ncol = 3, nrow = 3)
+for (i in 1:nsim) {
+    X <<- suppressMessages(sde.sim(model = "OU", theta = c(3,1,2), N = 1000 , delta = 1))
+    fit <- mle(OU.lik, start = list(theta1 = 1, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf,0,0))
+    print(fit)
+    cov <- vcov(fit) + cov
+    theta1vec[i] <- coef(fit)[[1]]
+    theta2vec[i] <- coef(fit)[[2]]
+    theta3vec[i] <- coef(fit)[[3]]
+}
+c(mean(theta1vec),mean(theta2vec),mean(theta3vec))
+}
+
+OU_est()
+
+c(mean(theta1vec),mean(theta2vec),mean(theta3vec))
+cov/nsim
+```
+
