@@ -1,9 +1,9 @@
 ---
-title: "Self study 3"
-author: ''
+title: "Selfstudy 3"
+author: 'Rasmus Dam, Jonas Brunholm Jensen, Asbjørn Bach Andreasen, Jonas Svejstrup Mikkelsen'
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 # Introduction
@@ -32,7 +32,7 @@ $$ d X_t = (\theta_1 - \theta_2 X_t) dt + \theta_3 \sqrt{X_t} d W_t, \quad X_0 =
 Use full maximum likelihood to fit the Cox-Ingersoll-Ross model to the dataset using the `sde` package as described in Iacus (2008).
 
 ```{r}
-library(sde)
+suppressMessages(library(sde))
 
 plot.ts(X)
 
