@@ -37,40 +37,12 @@ library(sde)
 plot.ts(X)
 
 
-expBes <- function(x, nu) {
-  mu <- 4 * nu^2
-  A1 <- 1
-  A2 <- A1 * (mu - 1) / (1 * (8 * x))
-  A3 <- A2 * (mu - 9) / (2 * (8 * x))
-  A4 <- A3 * (mu - 25) / (3 * (8 * x))
-  A5 <- A4 * (mu - 49) / (4 * (8 * x))
-  A6 <- A5 * (mu - 81) / (5 * (8 * x))
-  A7 <- A6 * (mu - 121) / (6 * (8 * x))
-  1 / sqrt(2 * pi * x) * (A1 - A2 + A3 - A4 + A5 - A6 + A7)
-}
-
-dcCIR <- function(x, t, x0, theta, log = FALSE) {
-  c <- 2 * theta [2] / ((1 - exp(-theta [2] * t)) * theta [3]^2)
-  ncp <- 2 * c * x0 * exp(-theta [2] * t)
-  df <- 4 * theta [1] / theta [3]^2
-  u <- c * x0 * exp(-theta [2] * t)
-  v <- c * x
-  q <- 2 * theta [1] / theta [3]^2 - 1
-  lik <- (log(c) - (u + v) + q / 2 * log(v / u) + log(expBes(2 * sqrt(u * v), q))
-    + 2 * sqrt(u * v))
-  if (!log) {
-    lik <- exp(lik)
-  }
-  lik
-}
-
-
 CIR.lik <- function(theta1, theta2, theta3) {
   n <- length(X)
   dt <- deltat(X)
   -sum(dcCIR(
-    x = X [2:n], t = dt, x0 = X [1:(n - 1)], theta = c(theta1, theta2, theta3),
-    log = TRUE
+    x = X [2:n], Dt = dt, x0 = X [1:(n - 1)], theta = c(theta1, theta2, theta3),
+    log = T
   ))
 }
 
@@ -87,25 +59,18 @@ Use the Euler pseudo likelihood to fit the Cox-Ingersoll-Ross model to the datas
 ```{r}
 
 d <- function(t, x, theta) {
-  theta[1] + theta[2] * x
+  theta[1] - theta[2] * x
 }
 
 s <- function(t, x, theta) {
   theta[3] * sqrt(x)
 }
 
-dcEuler_iacus <- function(x, t, x0, theta, drift) {
-  dd <- d(t, x0, theta)
-  (x - x0) * dd - 0.5 * t * dd^2
-}
-
-dcEuler_iacus(X[2:n], dt, X[1:n - 1], c(3, 0.5, 1), d)
-
 Euler_CIR <- function(theta1, theta2, theta3) {
   theta <- c(theta1, theta2, theta3)
   n <- length(X)
   dt <- deltat(X)
-  -sum(dcEuler_iacus(x = X[2:n], t = dt, x0 = X[1:n - 1], theta = theta, drift = d))
+  -sum(dcEuler(x = X[2:n], t = dt, x0 = X[1:n - 1],t0 = 0, theta = theta, d = d, s = s, log = T))
 }
 
 mle(Euler_CIR, start = list(theta1 = 3, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf, 0, 0))
@@ -131,25 +96,39 @@ Add the two corresponding theoretical percentiles as horizontal lines in the plo
 
 ```{r}
 
-theta1_sim <- 3.4906518
-theta2_sim <- 0.4866842
-theta3_sim <- 0.8948196
+library(tidyverse)
 
-data <- sde.sim(t0 = 0,
+result_sim_CIR <- suppressMessages(sde.sim(t0 = 0,
         X0 = X[1],
         N = 1000,
         delta = deltat(X),
         method = "euler",
-        theta = c(theta1_sim,theta2_sim,theta3_sim),
-        model = "CIR")
+        theta = c(3.4906518,0.4866842,0.8948196),
+        model = "CIR",
+        M = 1000))
 
-sim_CIR <- function(theta, N) {
-  # allo <- rep(0,N+1)
-  data <- data.frame()
-  for (variable in vector) {
-    
-  }
-}
+
+mean_path <- result_sim_CIR %>% apply(., 1, mean)
+low_percentile <- result_sim_CIR %>% apply(., 1, function (x) quantile(x, probs = 0.025))
+high_percentile <- result_sim_CIR %>% apply(., 1, function (x) quantile(x, probs = 0.975))
+
+
+plot_data <- data.frame(date = seq.Date(from = lubridate::date("1964-07-01"),
+                                        to = lubridate::date("1989-04-01"), length.out = 1001),
+                        mean = mean_path,
+                        q_low = low_percentile,
+                        q_high = high_percentile)
+
+plot_X <- data.frame(date = seq.Date(from = lubridate::date("1964-07-01"),
+                                        to = lubridate::date("1989-04-01"), length.out = 298),
+                     X = X)
+
+ggplot(data = plot_data, aes(x = date)) +
+  geom_line(aes(y = mean), color = "black") +
+  geom_line(aes(y = q_low), color = "blue") + 
+  geom_line(aes(y = q_high), color = "darkgreen") +
+  geom_line(aes(x = date, y = X), color = "orange", data = plot_X) +
+  labs(y = "Value")
 
 
 ```
