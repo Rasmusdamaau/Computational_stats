@@ -1,0 +1,68 @@
+---
+title: "Untitled"
+author: "SM"
+date: "11/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data(Irates, package = "Ecdat")
+rates <- Irates[, "r1"]
+X <- window(rates, start = 1964.471, end = 1989.333)
+plot.ts(X)
+```
+
+Problem A) 
+
+Use full maximum likelihood to fit the Cox-Ingersoll-Ross model to the dataset using the sde package as
+described in Iacus (2008).
+
+
+```{r}
+library(sde)
+
+#ExpBes function som i Iacus
+expBes <- function (x , nu ){
+mu <- 4* nu ^2
+A1 <- 1
+A2 <- A1 * (mu - 1) / (1 * (8 *x ))
+A3 <- A2 * (mu - 9) / (2 * (8 *x ))
+A4 <- A3 * (mu - 25) / (3 * (8 *x ))
+A5 <- A4 * (mu - 49) / (4 * (8 *x ))
+A6 <- A5 * (mu - 81) / (5 * (8 *x ))
+A7 <- A6 * (mu -121) / (6 * (8 *x ))
+1 / sqrt (2 * pi *x ) * ( A1 - A2 + A3 - A4 + A5 - A6 + A7 )
+}
+
+#Conditional Likelihood fra Iacus
+dcCIR <- function (x , t , x0 , theta , log = FALSE ){
+c <- 2 * theta [2] / ((1 - exp ( - theta [2] * t )) * theta [3]^2)
+ncp <- 2* c* x0 * exp (- theta [2] *t )
+df <- 4 * theta [1] / theta [3]^2
+u <- c * x0 * exp ( - theta [2] * t)
+v <- c *x
+q <- 2 * theta [1] / theta [3]^2 -1
+lik <- ( log (c ) - (u +v ) + q/ 2 * log ( v/ u) + log ( expBes ( 2 * sqrt ( u* v) , q ))
++ 2 * sqrt ( u* v ))
+if ( ! log )
+lik <- exp ( lik )
+lik
+}
+
+CIR.lik <- function(theta1, theta2, theta3) {
+n <- length(X)
+dt <- deltat(X)
+- sum (dcCIR(x = X[2:n], t = dt, x0 = X[1:(n-1)], theta = c(theta1, theta2, theta3),
+log = TRUE ))
+}
+
+
+mle(CIR.lik, start = list(theta1 = 1, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf,0,0))
+mle(CIR.lik, start = list(theta1 = 3, theta2 = 0.5, theta3 = 0.9), method = "L-BFGS-B", lower = c(-Inf,0,0))
+
+```
+
