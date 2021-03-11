@@ -1,0 +1,47 @@
+---
+title: "Self study 3"
+author: ''
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Introduction
+
+This self study assignment should be answered using a single Rmd file which can
+be run on one of the university servers js{01,02,03,04} in a reasonable amount of time.
+Please add student name in the yaml header (if you are a group of students working
+together you are allowed to only hand in one answer with all your names on it).
+
+# Interest rate data
+
+In this exercise we consider a classical dataset of US interest rates from medio
+1964 to medio 1989 from the package `Ecdat`: 
+```{r}
+data(Irates, package = "Ecdat")
+rates <- Irates[, "r1"]
+X <- window(rates, start = 1964.471, end = 1989.333)
+```
+
+## Problem A
+
+Use full maximum likelihood to fit the Cox-Ingersoll-Ross model to the dataset using the `sde` package as described in Iacus (2008).
+
+## Problem B
+
+Use the Euler pseudo likelihood to fit the Cox-Ingersoll-Ross model to the dataset using the `sde` package as described in Iacus (2008).
+
+## Problem C
+
+Generate 1000 simulations of one of the fitted models, with `N = 1000` time steps
+and the same start and end time and starting value as the dataset `X` (note the
+time step (frequency) of the simulations will be different than for the dataset).
+
+Calculate the mean path and the 2.5 and 97.5 percentile at each time point and
+plot these three curves together with the data.
+
+Is there any part of the data that looks suspicious compared to the fitted model?
+
+For the CIR model we can calculate the invariant distribution as a (scaled) $\chi^2$ distribution. This can be found at the bottom of p. 48 in Iacus (2008) by letting $t\to\infty$.
+
+Add the two corresponding theoretical percentiles as horizontal lines in the plot.
