@@ -96,14 +96,17 @@ Add the two corresponding theoretical percentiles as horizontal lines in the plo
 
 ```{r}
 
-library(tidyverse)
+suppressMessages(library(tidyverse))
+
+theta <- c(3.4906518,0.4866842,0.8948196)
+
 
 result_sim_CIR <- suppressMessages(sde.sim(t0 = 0,
         X0 = X[1],
         N = 1000,
         delta = deltat(X),
         method = "euler",
-        theta = c(3.4906518,0.4866842,0.8948196),
+        theta = theta,
         model = "CIR",
         M = 1000))
 
@@ -123,12 +126,30 @@ plot_X <- data.frame(date = seq.Date(from = lubridate::date("1964-07-01"),
                                         to = lubridate::date("1989-04-01"), length.out = 298),
                      X = X)
 
-ggplot(data = plot_data, aes(x = date)) +
+plot <- ggplot(data = plot_data, aes(x = date)) +
   geom_line(aes(y = mean), color = "black") +
   geom_line(aes(y = q_low), color = "blue") + 
-  geom_line(aes(y = q_high), color = "darkgreen") +
-  geom_line(aes(x = date, y = X), color = "orange", data = plot_X) +
+  geom_line(aes(y = q_high), color = "blue") +
+  geom_line(aes(x = date, y = X), color = "darkgreen", data = plot_X) +
   labs(y = "Value")
 
-
+plot
 ```
+
+Q: Is there any part of the data that looks suspicious compared to the fitted model?
+
+A: There is a part of the data that stays outside the confidence bounds for some time, except for that, nothing is suspicous.
+
+
+## Quantiles from gamma distribution
+
+```{r}
+
+gamma_quants <- qgamma(p = c(0.025,0.975), shape = (2*theta[1] )/ ((theta[3])^2), scale = (theta[3]^2) / (2* theta[2]))
+gamma_quants
+
+
+plot + geom_line(aes(y = gamma_quants[1]), color = "red") +
+  geom_line(aes(y = gamma_quants[2]), color = "red")
+```
+
