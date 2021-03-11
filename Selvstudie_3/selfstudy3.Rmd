@@ -23,13 +23,95 @@ rates <- Irates[, "r1"]
 X <- window(rates, start = 1964.471, end = 1989.333)
 ```
 
+## CIR model
+
+$$ d X_t = (\theta_1 - \theta_2 X_t) dt + \theta_3 \sqrt{X_t} d W_t, \quad X_0 = x_0 > 0 $$
+
 ## Problem A
 
 Use full maximum likelihood to fit the Cox-Ingersoll-Ross model to the dataset using the `sde` package as described in Iacus (2008).
 
+```{r}
+library(sde)
+
+plot.ts(X)
+
+
+expBes <- function(x, nu) {
+  mu <- 4 * nu^2
+  A1 <- 1
+  A2 <- A1 * (mu - 1) / (1 * (8 * x))
+  A3 <- A2 * (mu - 9) / (2 * (8 * x))
+  A4 <- A3 * (mu - 25) / (3 * (8 * x))
+  A5 <- A4 * (mu - 49) / (4 * (8 * x))
+  A6 <- A5 * (mu - 81) / (5 * (8 * x))
+  A7 <- A6 * (mu - 121) / (6 * (8 * x))
+  1 / sqrt(2 * pi * x) * (A1 - A2 + A3 - A4 + A5 - A6 + A7)
+}
+
+dcCIR <- function(x, t, x0, theta, log = FALSE) {
+  c <- 2 * theta [2] / ((1 - exp(-theta [2] * t)) * theta [3]^2)
+  ncp <- 2 * c * x0 * exp(-theta [2] * t)
+  df <- 4 * theta [1] / theta [3]^2
+  u <- c * x0 * exp(-theta [2] * t)
+  v <- c * x
+  q <- 2 * theta [1] / theta [3]^2 - 1
+  lik <- (log(c) - (u + v) + q / 2 * log(v / u) + log(expBes(2 * sqrt(u * v), q))
+    + 2 * sqrt(u * v))
+  if (!log) {
+    lik <- exp(lik)
+  }
+  lik
+}
+
+
+CIR.lik <- function(theta1, theta2, theta3) {
+  n <- length(X)
+  dt <- deltat(X)
+  -sum(dcCIR(
+    x = X [2:n], t = dt, x0 = X [1:(n - 1)], theta = c(theta1, theta2, theta3),
+    log = TRUE
+  ))
+}
+
+
+mle(CIR.lik, start = list(theta1 = 3, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf, 0, 0))
+```
+
+
+
 ## Problem B
 
 Use the Euler pseudo likelihood to fit the Cox-Ingersoll-Ross model to the dataset using the `sde` package as described in Iacus (2008).
+
+```{r}
+
+d <- function(t, x, theta) {
+  theta[1] + theta[2] * x
+}
+
+s <- function(t, x, theta) {
+  theta[3] * sqrt(x)
+}
+
+dcEuler_iacus <- function(x, t, x0, theta, drift) {
+  dd <- d(t, x0, theta)
+  (x - x0) * dd - 0.5 * t * dd^2
+}
+
+dcEuler_iacus(X[2:n], dt, X[1:n - 1], c(3, 0.5, 1), d)
+
+Euler_CIR <- function(theta1, theta2, theta3) {
+  theta <- c(theta1, theta2, theta3)
+  n <- length(X)
+  dt <- deltat(X)
+  -sum(dcEuler_iacus(x = X[2:n], t = dt, x0 = X[1:n - 1], theta = theta, drift = d))
+}
+
+mle(Euler_CIR, start = list(theta1 = 3, theta2 = 0.5, theta3 = 1), method = "L-BFGS-B", lower = c(-Inf, 0, 0))
+```
+
+
 
 ## Problem C
 
@@ -45,3 +127,29 @@ Is there any part of the data that looks suspicious compared to the fitted model
 For the CIR model we can calculate the invariant distribution as a (scaled) $\chi^2$ distribution. This can be found at the bottom of p. 48 in Iacus (2008) by letting $t\to\infty$.
 
 Add the two corresponding theoretical percentiles as horizontal lines in the plot.
+
+
+```{r}
+
+theta1_sim <- 3.4906518
+theta2_sim <- 0.4866842
+theta3_sim <- 0.8948196
+
+data <- sde.sim(t0 = 0,
+        X0 = X[1],
+        N = 1000,
+        delta = deltat(X),
+        method = "euler",
+        theta = c(theta1_sim,theta2_sim,theta3_sim),
+        model = "CIR")
+
+sim_CIR <- function(theta, N) {
+  # allo <- rep(0,N+1)
+  data <- data.frame()
+  for (variable in vector) {
+    
+  }
+}
+
+
+```
