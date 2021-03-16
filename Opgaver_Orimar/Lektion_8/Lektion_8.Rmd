@@ -1,0 +1,82 @@
+---
+title: "lektion_8"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+sim_BM <- function(T_, delta) {
+  tmesh <- seq(from = 0, to = T_, by = delta)
+  N <- length(tmesh)
+  step <- delta * T_
+  Norm <- rnorm(N)
+  B <- c(0, cumsum(sqrt(step) * Norm[-N]))
+  output <- data.frame(B = B, Norm = Norm)
+  return(output)
+}
+
+b <- function(x) {
+  matrix(c(
+    0,
+    0.5 - (0.5 + 0) * x[2]
+  ), nrow = 2, ncol = 1)
+}
+
+sigma <- function(x) {
+  matrix(c(
+    x[1] * sqrt(1),
+    0, 0, 0.4
+  ), nrow = 2, ncol = 2) * sqrt(x[2])
+}
+
+payoff <- function(x, K) {
+  max(x[, 1] - K, 0)
+}
+
+algo_1 <- function(M, n, t, T, r, b, sigma, x, payoff, K) {
+  delta_n <- (T - t) / n
+  last_obs <- matrix(0, nrow = M, ncol = 2)
+  for (j in 1:M) {
+    bm1 <- diff(sim_BM(T_ = 1, delta = delta_n)$B)
+    bm2 <- diff(sim_BM(T_ = 1, delta = delta_n)$B)
+    bm <- cbind(bm1, bm2)
+    X <- matrix(x, nrow = n + 1, ncol = 2, byrow = TRUE)
+    for (k in 2:n) {
+      X[k + 1, ] <- X[k, ] + delta_n * b(X[k, ]) + sigma(X[k, ]) %*% bm[k, ]
+    }
+    last_obs[j, ] <- X[n, ]
+  }
+  F <- exp(-r * (T - t)) * 1 / M * sum(payoff(last_obs, K))
+  return(F)
+}
+
+t <- (0:10) / 10
+si <- 9 + 0:20 / 10
+y <- (1:10) / 10
+result <- data.frame(t = 0, si = 0, y = 0, price = 0)
+i <- 1
+for (t_ in t) {
+  for (si_ in si) {
+    for (y_ in y) {
+      i <- i + 1
+      result[i, c("t", "si", "y", "price")] <- c(
+        t_, si_, y_,
+        algo_1(
+          M = 100,
+          n = 100,
+          t = t_, T = 1, r = 0, b = b, sigma = sigma, x = c(si_, y_), payoff = payoff, K = 10
+        )
+      )
+    }
+  }
+}
+
+
+algo_1(M = 100, n = 100, t = 0.1, T = 1, r = 0, b = b, sigma = sigma, x = c(9, 0.1), payoff = payoff, K = 10)
+```
