@@ -21,6 +21,9 @@ library(tidyverse)
 ```{r}
 
 sim_BM <- function(T_, delta) {
+  if (delta==0) {
+    return(0)
+  } else
   tmesh <- seq(from = 0, to = T_, by = delta)
   N <- length(tmesh)
   Norm <- rnorm(N)
@@ -74,12 +77,12 @@ Heston_euler_payoff <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, K) {
   x <- x_min + 0:m_ * delta_m_price
   v <- v_min + delta_q_vol * 0:q_
 
-  result <- matrix(data = NA,nrow = n_*m_*q_,ncol = 4,dimnames = list(c(),c("t", "si", "y", "price")))
+  result <- matrix(data = NA,nrow = (n_+1)*(m_+1)*(q_+1),
+                   ncol = 4,dimnames = list(c(),c("t", "si", "y", "price")))
   i <- 1
   for (t_ in t) {
     for (si_ in x) {
       for (y_ in v) {
-        i <- i + 1
         result[i, c("t", "si", "y", "price")] <- c(
           t_, si_, y_,
           algo_1(
@@ -88,6 +91,7 @@ Heston_euler_payoff <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, K) {
             t = t_, T = T, r = 0, b = b, sigma = sigma, x = c(si_, y_), payoff = payoff, K = K
           )
         )
+        i <- i + 1
       }
     }
   }
