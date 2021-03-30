@@ -1,28 +1,98 @@
 ---
-title: "SS_2"
-output: html_document
+title: "miniprojekt_2"
+output:
+  pdf_document:
+    extra_dependencies: ["float"]
+    toc: true
+    toc_depth: 4
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Exercise 1.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## 1.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
 
-```{r cars}
-summary(cars)
+sim_BM <- function(T_, delta) {
+  tmesh <- seq(from = 0, to = T_, by = delta)
+  N <- length(tmesh)
+  step <- delta * T_
+  Norm <- rnorm(N)
+  B <- c(0, cumsum(sqrt(delta) * Norm[-N]))
+  output <- data.frame(B = B, Norm = Norm)
+  return(output)
+}
+
+
 ```
 
-## Including Plots
+## 2.
 
-You can also embed plots, for example:
+```{r}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## 3.
+
+```{r}
+
+```
+
+## 4.
+
+```{r}
+
+```
+
+
+## 5.
+
+```{r}
+
+```
+
+
+## 6.
+
+```{r}
+
+```
+
+
+## 7.
+
+```{r}
+
+
+```
+
+
+## 8.
+
+
+# Exercise 2.
+
+## 1.
+
+```{r}
+
+```
+
+
+## 2.
+
+```{r}
+
+```
+
+
+## 3.
+
+```{r}
+
+```
+
