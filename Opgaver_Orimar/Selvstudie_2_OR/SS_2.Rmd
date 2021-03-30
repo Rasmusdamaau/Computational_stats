@@ -9,6 +9,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+Sys.setenv(language="en")
+library(sde)
+library(tidyverse)
 ```
 
 # Exercise 1.
@@ -20,12 +23,49 @@ knitr::opts_chunk$set(echo = TRUE)
 sim_BM <- function(T_, delta) {
   tmesh <- seq(from = 0, to = T_, by = delta)
   N <- length(tmesh)
-  step <- delta * T_
   Norm <- rnorm(N)
   B <- c(0, cumsum(sqrt(delta) * Norm[-N]))
-  output <- data.frame(B = B, Norm = Norm)
-  return(output)
+  return(B)
 }
+
+b <- function(x) {
+  matrix(c(
+    0,
+    0.5 - (0.5 + 0) * x[2]
+  ), nrow = 2, ncol = 1)
+}
+
+sigma <- function(x) {
+  matrix(c(
+    x[1] * sqrt(1),
+    0, 0, 0.4
+  ), nrow = 2, ncol = 2) * sqrt(x[2])
+}
+
+payoff <- function(x, K) {
+  max(x[, 1] - K, 0)
+}
+
+algo_1 <- function(M, n, t, T, r, b, sigma, x, payoff, K) {
+  delta_n <- (T - t) / n
+  last_obs <- matrix(0, nrow = M, ncol = 2)
+  for (j in 1:M) {
+    bm1 <- diff(sim_BM(T_ = 1, delta = delta_n))
+    bm2 <- diff(sim_BM(T_ = 1, delta = delta_n))
+    bm <- cbind(bm1, bm2)
+    X <- matrix(x, nrow = n + 1, ncol = 2, byrow = TRUE)
+    for (k in 2:n) {
+      X[k + 1, ] <- X[k, ] + delta_n * b(X[k, ]) + sigma(X[k, ]) %*% bm[k, ]
+    }
+    last_obs[j, ] <- X[n, ]
+  }
+  F <- exp(-r * (T - t)) * 1 / M * sum(payoff(last_obs, K))
+  return(F)
+}
+
+
+
+algo_1(M = 100, n = 100, t = 0.1, T = 1, r = 0, b = b, sigma = sigma, x = c(9, 0.1), payoff = payoff, K = 10)
 
 
 ```
