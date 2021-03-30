@@ -21,10 +21,11 @@ library(tidyverse)
 ```{r}
 
 sim_BM <- function(T_, delta) {
-  if (delta==0) {
+  if (delta == 0) {
     return(0)
-  } else
-  tmesh <- seq(from = 0, to = T_, by = delta)
+  } else {
+    tmesh <- seq(from = 0, to = T_, by = delta)
+  }
   N <- length(tmesh) %>% ceiling()
   Norm <- rnorm(N)
   B <- c(0, cumsum(sqrt(delta) * Norm[-N]))
@@ -46,30 +47,35 @@ sigma <- function(x) {
 }
 
 payoff <- function(x, K) {
-  max(x[, 1] - K, 0)
+  if (is.vector(x)) {
+    return(max(x[2] - K, 0))
+  } else {
+    return(max(x[, 1] - K, 0))
+  }
 }
 
 algo_1 <- function(M, n, t, T, r, b, sigma, x, payoff, K) {
-  if (T-t == 0) {
+  if (T - t < 0.0001) {
     return(payoff(x, K))
-  } else
-  delta_n <- (T - t) / n
-  print(delta_n)
+  } else {
+    delta_n <- (T - t) / n
+  }
+  # print(delta_n)
   last_obs <- matrix(NA, nrow = M, ncol = 2)
   for (j in 1:M) {
     bm1 <- diff(sim_BM(T_ = T, delta = delta_n))
     bm2 <- diff(sim_BM(T_ = T, delta = delta_n))
     bm <- cbind(bm1, bm2)
     X <- matrix(NA, nrow = n + 2, ncol = 2, byrow = TRUE)
-    X[1,] <- x
+    X[1, ] <- x
     for (k in 1:n) {
-      print(delta_n * b(X[k, ]))
-      print(sigma(X[k, ]) %*% bm[k, ])
-      print(n)
-      print(k)
+      # print(delta_n * b(X[k, ]))
+      # print(sigma(X[k, ]) %*% bm[k, ])
+      # print(n)
+      # print(k)
       X[k + 1, ] <- X[k, ] + delta_n * b(X[k, ]) + sigma(X[k, ]) %*% bm[k, ]
     }
-    last_obs[j, ] <- X[n, ]
+    last_obs[j, ] <- X[n + 1, ]
   }
   F <- exp(-r * (T - t)) * 1 / M * sum(payoff(last_obs, K))
   return(F)
@@ -86,8 +92,10 @@ Heston_euler_payoff <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, K) {
   x <- x_min + 0:m_ * delta_m_price
   v <- v_min + delta_q_vol * 0:q_
 
-  result <- matrix(data = NA,nrow = (n_+1)*(m_+1)*(q_+1),
-                   ncol = 4,dimnames = list(c(),c("t", "si", "y", "price")))
+  result <- matrix(
+    data = NA, nrow = (n_ + 1) * (m_ + 1) * (q_ + 1),
+    ncol = 4, dimnames = list(c(), c("t", "si", "y", "price"))
+  )
   i <- 1
   for (t_ in t) {
     for (si_ in x) {
@@ -96,32 +104,26 @@ Heston_euler_payoff <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, K) {
           t_, si_, y_,
           algo_1(
             M = 10, # monte carlo sims
-            n = n_* (T - t_),
+            n = n_ * (T - t_),
             t = t_, T = T, r = 0, b = b, sigma = sigma, x = c(si_, y_), payoff = payoff, K = K
           )
         )
-        print(result[i,])
         i <- i + 1
       }
     }
   }
+  return(result)
 }
-
-ex_2 <- Heston_euler_payoff(100, 10, 10, 0, 10, 0, 10, 1, 1)
-
-algo_1(
-  M = 10, # monte carlo sims
-  n = 100 * (1 - 0.34),
-  t = 0.35, T = 1, r = 0, b = b, sigma = sigma, x = c(0, 0), payoff = payoff, K = 10
-)
-
-
 ```
 
 ## 2.
 
 ```{r}
-
+ex_2 <- Heston_euler_payoff(
+  n_ = 100, m_ = 10, q_ = 10,
+  x_min = 0, x_max = 10, v_min = 0,
+  v_max = 10, T = 1, K = 1
+)
 ```
 
 ## 3.
