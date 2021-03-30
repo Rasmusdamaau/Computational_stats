@@ -1,6 +1,8 @@
 ---
-title: "SS_1"
-output: html_document
+title: "Self Study_1"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -30,7 +32,7 @@ $$  \lambda = x = \bar{\sigma} = T = 1. $$
 
 ### 1, 2
 
-By Using a Riemann approximation of $ \int_0^t Z_s ds$, write a code that simulates (with error) the exact solution of $(1)$ (i.e. (2)) on an equally spaced grid of $[0,1]$ given by
+By Using a Riemann approximation of $\int_0^t Z_s ds$, write a code that simulates (with error) the exact solution of $(1)$ (i.e. (2)) on an equally spaced grid of $[0,1]$ given by
 
 $$t_k = \frac{k}{n}, \quad k = 0, \ldots, n, \quad n \in \mathbb{N}.$$
 
@@ -69,7 +71,8 @@ sigma_dif <- function(t, X_t) {
   1
 }
 
-approx_integral_exact_solution_Euler_sol_Milstein_sol <- function(delta, T_ = 1, b, sigma, x_0 = 0, Z_t, sigma_dif) {
+approx_integral_exact_solution_Euler_sol_Milstein_sol <- 
+  function(delta, T_ = 1, b, sigma, x_0 = 0, Z_t, sigma_dif) {
   tmesh <- seq(from = 0, to = T_, by = delta)
   N_n <- length(tmesh)
   # N_n <- ceiling(T_ / delta)
@@ -86,8 +89,10 @@ approx_integral_exact_solution_Euler_sol_Milstein_sol <- function(delta, T_ = 1,
     X_2[k] <- X_2[k - 1] + b(tmesh[k], X_2[k - 1]) * step +
       sigma(tmesh[k], X_2[k - 1]) * (B[k] - B[k - 1])
     # Milstein scheme
-    X_3[k] <- X_3[k - 1] + b(tmesh[k], X_3[k - 1]) * step + sigma(tmesh[k], X_3[k - 1]) * (B[k] - B[k - 1]) +
-      1 / 2 * sigma(tmesh[k - 1], X_3[k - 1]) * sigma_dif(tmesh[k - 1], X_3[k - 1]) * ((B[k] - B[k - 1])^2 - step)
+    X_3[k] <- X_3[k - 1] + b(tmesh[k], X_3[k - 1]) * step + sigma(tmesh[k], X_3[k - 1]) *
+      (B[k] - B[k - 1]) +
+      1 / 2 * sigma(tmesh[k - 1], X_3[k - 1]) * 
+      sigma_dif(tmesh[k - 1], X_3[k - 1]) * ((B[k] - B[k - 1])^2 - step)
   }
 
   XX <- Z_t(t = tmesh, B = B) / (1 + X)
