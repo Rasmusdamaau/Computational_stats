@@ -155,16 +155,10 @@ G <- function(tau, x, v, K, x_max, v_max) {
     )
 }
 
-finite_difference <- function(df, input, t, x, v, delta_n_time, delta_m_price, delta_q_vol) {
-  delta <- case_when(input == 1 ~ delta_n_time,
-                     input == 2 ~ delta_m_price,
-                     input == 3 ~ delta_q_vol,
-                     input == c(2,2) ~ delta_m_price^2,
-                     input == c(3,3) ~ delta_q_vol^2,
-                     input == c(2,3) ~ delta_m_price * delta_q_vol)
-  if (length(input) == 1) {
-    df %>% filter(t == t, x == x, v == v) %>% select(price)
-  }
+G_price <- function(df,t_,x_,v_) {
+  df %>% dplyr::filter(t == t_,
+                       x == x_,
+                       v == v_) %>% pull(price)
 }
 
 finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, K) {
@@ -196,16 +190,37 @@ finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, 
   result_df <- result %>%
     as_tibble() %>%
     rowwise() %>% 
-    mutate(price = G(tau = t,x = x,v = v,K = K,x_max = x_max,v_max = v_max))
+    mutate(price = G(tau = t,x = x,v = v,K = K,x_max = x_max,v_max = v_max)) %>%
+    ungroup()
   
-  for (t_ in t) {
-    for (si_ in x) {
-      for (y_ in v) {
-        if (condition) {
-          
-        }
-        i <- i + 1
-      }
+  for (i in 1:nrow(result_df)) {
+    if (is.na(result_df[i,"price"])) {
+      t_x_v_i <- result_df[i,c("t", "x", "v")]
+      
+      t_i <- t[(which(t_x_v_i$t == t) - 1)]
+      x_i <- t_x_v_i$x
+      v_i <- t_x_v_i$v
+      
+      d_v <- (G_price(result_df, t_i, x_i, v_i + delta_q_vol) -
+        G_price(result_df, t_i,x_i, v_i)) * delta_q_vol
+      
+      d_xx <- (G_price(result_df, t_i, x_i + delta_m_price, v_i) - 
+                 2 * G_price(result_df, t_i, x_i, v_i) +
+                 G_price(result_df, t_i, x_i - delta_m_price, v_i)) / (delta_m_price^2)      
+      
+      d_vv <- (G_price(result_df, t_i, x_i, v_i + delta_q_vol) -
+                 2 * G_price(result_df, t_i, x_i, v_i) +
+                 G_price(result_df, t_i, x_i, v_i - delta_q_vol)) / (delta_q_vol^2)
+      
+      d_xv <- (G_price(result_df, t_i, x_i + delta_m_price, v_i + delta_q_vol) -
+                 G_price(result_df, t_i, x_i, v_i) +
+                 G_price(result_df, t_i, x_i - delta_m_price, v_i - delta_q_vol)) / 
+        (delta_m_price * delta_q_vol)
+      
+      result_df[i, "price"] <- G_price(result_df, t_i, x_i, v_i) + delta_n_time * (
+        (0.5 + 0.5 * v_i) * d_v + (1/2) * (x_i^2) * v_i * d_xx + (1/2) * (0.4^2) * v_i * d_vv -
+          0.7 * 0.4 * v_i * x_i * d_xv
+      )
     }
   }
   
@@ -213,9 +228,9 @@ finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, 
   
 }
 
-ex_5 <- finite_difference_approx(n_ = 100, m_ = 10, q_ = 10,
-  x_min = 0, x_max = 10, v_min = 0,
-  v_max = 10, T = 1, K = 1)
+
+
+
 
 ```
 
@@ -224,13 +239,30 @@ ex_5 <- finite_difference_approx(n_ = 100, m_ = 10, q_ = 10,
 
 ```{r}
 
+ex_6 <- finite_difference_approx(n_ = 100, m_ = 10, q_ = 10,
+  x_min = 0, x_max = 10, v_min = 0,
+  v_max = 10, T = 1, K = 1)
+
+
 ```
 
 
 ## 7.
 
 ```{r}
+plot_data <- ex_6 %>% mutate(t = 1 - t,
+                             metode = "finite_difference") %>% 
+  union(., ex_2 %>% as_tibble() %>% 
+               mutate(metode = "monte_carlo") %>% 
+               rename(x = si,
+                      v = y))
 
+plot_difference <- ggplot(data = plot_data) +
+  coord_cartesian(ylim = c(-2,20))
+
+plot_difference + geom_point(aes(x = x, y = price, color = metode))
+plot_difference + geom_point(aes(x = v, y = price, color = metode))
+plot_difference + geom_point(aes(x = t, y = price, color = metode))
 
 ```
 
