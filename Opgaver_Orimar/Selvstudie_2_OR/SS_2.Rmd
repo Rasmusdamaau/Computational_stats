@@ -10,7 +10,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 Sys.setenv(language = "en")
-library(sde)
+# library(sde)
 library(tidyverse)
 ```
 
@@ -141,7 +141,15 @@ ex_2 <- Heston_euler_payoff(
 
 ## 5.
 
+
+
 ```{r}
+
+G <- function(tau, x, v) {
+  
+}
+
+
 
 ```
 
