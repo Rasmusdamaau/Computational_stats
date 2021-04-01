@@ -176,11 +176,9 @@ G <- function(tau, x, v) {
 
 # Exercise 2.
 
-## 1.
+## 1.2.3
 
 ```{r}
-bb <- sim_BM(1, 1/1000)
-
 X_t <- function(M, n, t, T, r, b, sigma, x) {
   if (T - t < 0.0001) {
     return(payoff(x, K))
@@ -209,6 +207,14 @@ X_t <- function(M, n, t, T, r, b, sigma, x) {
   return(Xf)
 }
 
+
+X_t(M=1, n=10000, t=0, T=1, b=b, sigma=sigma, x=c(1,0.3))
+```
+
+
+## 2.
+
+```{r}
 iv <- matrix(NA, nrow=100000, ncol = 4)
 theta <- matrix(NA, nrow=100000, ncol = 4)
 n <- 10
@@ -220,50 +226,6 @@ for(i in 1:4){
   theta[1:n,i] <- cumsum(diff(X_t_1[,1])^2)
 }
 
-iv
-theta
-
-
-hat_sigma <- function(k, t, x_t) {
-  aa <- 1/(1/n*k)*sum(diff(x_t[t:(t+k)])^2)
-  aa
-}
-
-hat_sigma(30, 1000, X_t_1[,1])
-
-hat_sigma_forall_n <- c()
-k <- 20
-p <- 10000
-for (i in 1:p){
-  hat_sigma_forall_n[i] <- hat_sigma(k,i, X_t_1[,1])
-}
-lower_upper_bounds_iv <- sqrt(2/3 * cumsum(diff(X_t_1[,2])^4))
-
-upper_conf_iv <- iv[,4] + 1.96 * lower_upper_bounds_iv
-lower_conf_iv <- iv[,4] - 1.96 * lower_upper_bounds_iv
-tibble1 <- tibble(upper_conf = upper_conf_iv, lower_conf =lower_conf_iv, implied_vol = iv[,4])
-ggplot(data=tibble1,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble1)))) +
-  geom_line(aes(y = upper_conf), color="blue") + 
-  geom_line(aes(y=lower_conf), color="blue") + 
-  geom_line(aes(y=implied_vol))
-
-lower_upper_bounds_sigma <- sqrt(2/k *hat_sigma_forall_n^2)
-upper_conf_sigma <- hat_sigma_forall_n + 1.96 * lower_upper_bounds_sigma
-lower_conf_sigma <- hat_sigma_forall_n - 1.96 * lower_upper_bounds_sigma
-
-tibble2 <- tibble(upper_conf = upper_conf_sigma, lower_conf =lower_conf_sigma, sigma_hat = hat_sigma_forall_n)
-ggplot(data=tibble2,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble2)))) +
-  geom_line(aes(y = upper_conf), color="blue") + 
-  geom_line(aes(y=lower_conf), color="blue") + 
-  geom_line(aes(y=sigma_hat))
-
-
-```
-
-
-## 2.
-
-```{r}
 
 ```
 
@@ -271,5 +233,50 @@ ggplot(data=tibble2,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble2)))) 
 ## 3.
 
 ```{r}
+iv <- matrix(NA, nrow=100000, ncol = 4)
+theta <- matrix(NA, nrow=100000, ncol = 4)
+n <- 10
+for(i in 1:4){
+  n <- n*10
+  X_t_1 <- X_t(M=1, n=n, t=0, T=1, r=0, b=b, sigma=sigma, x=c(1,0.3))
+  iv[1:n,i] <- cumsum(diff(X_t_1[,2])^2)
+  theta[1:n,i] <- cumsum(diff(X_t_1[,1])^2)
+}
+
+hat_sigma <- function(k, t, x_t) {
+  aa <- 1/(1/n*k)*sum(diff(x_t[t:(t+k)])^2)
+  aa
+}
+
+
+hat_sigma_forall_n <- c()
+k <- 20
+p <- 10000
+for (i in 1:p){
+  hat_sigma_forall_n[i] <- hat_sigma(k,i, X_t_1[,1])
+}
+
+lower_upper_bounds_iv <- sqrt(2/3 * cumsum(diff(X_t_1[,2])^4))
+
+upper_conf_iv <- iv[,4] + 1.96 * lower_upper_bounds_iv
+lower_conf_iv <- iv[,4] - 1.96 * lower_upper_bounds_iv
+tibble1 <- tibble(upper_conf = upper_conf_iv, lower_conf =lower_conf_iv, implied_vol = iv[,4])
+
+ggplot(data=tibble1,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble1)))) +
+  geom_line(aes(y = upper_conf), color="blue") + 
+  geom_line(aes(y=lower_conf), color="blue") + 
+  geom_line(aes(y=implied_vol))
+
+
+lower_upper_bounds_sigma <- sqrt(2/k *hat_sigma_forall_n^2)
+upper_conf_sigma <- hat_sigma_forall_n + 1.96 * lower_upper_bounds_sigma
+lower_conf_sigma <- hat_sigma_forall_n - 1.96 * lower_upper_bounds_sigma
+tibble2 <- tibble(upper_conf = upper_conf_sigma, lower_conf =lower_conf_sigma, sigma_hat = hat_sigma_forall_n)
+
+ggplot(data=tibble2,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble2)))) +
+  geom_line(aes(y = upper_conf), color="blue") + 
+  geom_line(aes(y=lower_conf), color="blue") + 
+  geom_line(aes(y=sigma_hat))
+
 
 ```
