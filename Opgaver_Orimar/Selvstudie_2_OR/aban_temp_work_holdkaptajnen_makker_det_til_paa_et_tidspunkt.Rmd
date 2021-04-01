@@ -247,6 +247,15 @@ ggplot(data=tibble1,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble1)))) 
   geom_line(aes(y=lower_conf), color="blue") + 
   geom_line(aes(y=implied_vol))
 
+lower_upper_bounds_sigma <- sqrt(2/k *hat_sigma_forall_n^2)
+upper_conf_sigma <- hat_sigma_forall_n + 1.96 * lower_upper_bounds_sigma
+lower_conf_sigma <- hat_sigma_forall_n - 1.96 * lower_upper_bounds_sigma
+
+tibble2 <- tibble(upper_conf = upper_conf_sigma, lower_conf =lower_conf_sigma, sigma_hat = hat_sigma_forall_n)
+ggplot(data=tibble2,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble2)))) +
+  geom_line(aes(y = upper_conf), color="blue") + 
+  geom_line(aes(y=lower_conf), color="blue") + 
+  geom_line(aes(y=sigma_hat))
 
 
 ```
