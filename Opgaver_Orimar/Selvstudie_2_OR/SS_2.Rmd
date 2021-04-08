@@ -251,7 +251,7 @@ $G(\tau, x, v_{max}) = x$, using the upper bound of \eqref{eq:ex_4_3}.
 \end{align*}
 
 \begin{align*}
-  \partial_{xv} G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j+1}, v_{k+1})-2G(\tau_{i},x_{j}, v_k) + G(\tau_{i},x_{j-1}, v_{k-1})}{\Delta_{q}^{vol}\Delta_{m}^{price}}
+  \partial_{xv} G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j+1}, v_{k+1})-G(\tau_{i},x_{j+1}, v_{k-1})-G(\tau_{i},x_{j-1}, v_{k+1})+G(\tau_{i},x_{j-1}, v_{k-1})}{4\Delta_{q}^{vol}\Delta_{m}^{price}}
 \end{align*}
 
 Inserting these into the differential equation yields (using $r = 0$) 
@@ -338,23 +338,24 @@ finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, 
       v_i <- t_x_v_i$v
 
       d_v <- (G_price(result_df, t_i, x_i, v_i + delta_q_vol) -
-        G_price(result_df, t_i, x_i, v_i)) * delta_q_vol
-
+        G_price(result_df, t_i, x_i, v_i)) / delta_q_vol
+      
       d_xx <- (G_price(result_df, t_i, x_i + delta_m_price, v_i) -
         2 * G_price(result_df, t_i, x_i, v_i) +
         G_price(result_df, t_i, x_i - delta_m_price, v_i)) / (delta_m_price^2)
-
+      
       d_vv <- (G_price(result_df, t_i, x_i, v_i + delta_q_vol) -
         2 * G_price(result_df, t_i, x_i, v_i) +
         G_price(result_df, t_i, x_i, v_i - delta_q_vol)) / (delta_q_vol^2)
 
       d_xv <- (G_price(result_df, t_i, x_i + delta_m_price, v_i + delta_q_vol) -
-        G_price(result_df, t_i, x_i, v_i) +
-        G_price(result_df, t_i, x_i - delta_m_price, v_i - delta_q_vol)) /
-        (delta_m_price * delta_q_vol)
-
+                 G_price(result_df, t_i, x_i + delta_m_price, v_i - delta_q_vol) -
+                 G_price(result_df, t_i, x_i - delta_m_price, v_i + delta_q_vol) +
+                 G_price(result_df, t_i, x_i - delta_m_price, v_i - delta_q_vol)
+      ) / (4 * delta_q_vol * delta_m_price)
+      
       result_df[i, "price"] <- G_price(result_df, t_i, x_i, v_i) + delta_n_time * (
-        (0.5 + 0.5 * v_i) * d_v + (1 / 2) * (x_i^2) * v_i * d_xx + (1 / 2) * (0.4^2) * v_i * d_vv -
+        (0.5 - 0.5 * v_i) * d_v + (1 / 2) * (x_i^2) * v_i * d_xx + (1 / 2) * (0.4^2) * v_i * d_vv -
           0.7 * 0.4 * v_i * x_i * d_xv
       )
     }
@@ -395,9 +396,10 @@ plot_data <- ex_6 %>%
     ))
 
 plot_difference <- ggplot(data = plot_data) +
-  coord_cartesian(ylim = c(-2, 20))
+ coord_cartesian(ylim = c(-2, 20))
 
-# we get some extreme results from the finite difference method, aswell as negavtive prices
+# we get some extreme results from the finite difference method, as well as negavtive prices
+# we are not sure why
 
 plot_difference + geom_point(aes(x = x, y = price, color = metode))
 plot_difference + geom_point(aes(x = v, y = price, color = metode))
@@ -513,7 +515,8 @@ ggplot(data=tibble1,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble1)))) 
 lower_upper_bounds_sigma <- sqrt(2/k *hat_sigma_forall_n^2)
 upper_conf_sigma <- hat_sigma_forall_n + 1.96 * lower_upper_bounds_sigma
 lower_conf_sigma <- hat_sigma_forall_n - 1.96 * lower_upper_bounds_sigma
-tibble2 <- tibble(upper_conf = upper_conf_sigma, lower_conf =lower_conf_sigma, sigma_hat = hat_sigma_forall_n)
+tibble2 <- tibble(upper_conf = upper_conf_sigma,
+                  lower_conf =lower_conf_sigma, sigma_hat = hat_sigma_forall_n)
 
 ggplot(data=tibble2,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble2)))) +
   geom_line(aes(y = upper_conf), color="blue") + 
