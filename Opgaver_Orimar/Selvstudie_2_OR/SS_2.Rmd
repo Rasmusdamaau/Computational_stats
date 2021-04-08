@@ -128,37 +128,151 @@ ex_2 <- Heston_euler_payoff(
 
 ## 3.
 
-```{r}
+\textbf{3. Use the Feynman-Kac formula to show that the function $G(\tau,x,v)=F(T-\tau,x,v)$ satisfies the PDE}
 
-```
+\begin{align*}
+    -\partial_\tau G + rx\partial_xG+(\alpha-\lambda v)\partial_vG+\frac{1}{2}x^2v\partial_{xx}G+\frac{1}{2}\sigma_V^2v\partial_{vv}G+\rho\sigma_Vvx\partial_{xv}G-rG = 0
+\end{align*}
+ 
+with initial condition $G(0,x,v) = (x-K)^+$
+
+\textbf{Answer}
+
+We are working with the Heston model on the risk neutral measure, i.e. 
+
+\begin{align}
+    \text{d}S_t &= S_tr\text{d}t+S_t\sqrt{V_t}(\sqrt{1-\rho^2}\text{d}B_t^{(1)}+\rho \text{d}B_t^{(2)})\\
+    \text{d}V_t&=(\alpha-\lambda V_t)\text{d}t+\sigma_V\sqrt{V_t}\text{d}B_t^{(2)}
+\end{align}
+
+
+The Feynmann-Kac formula then dictates
+
+\begin{align}\label{eq:feynmann}
+    \partial_tF+\sum_{i=1}^d b^{(i)} \partial_{x_i}F + \frac{1}{2} \sum_{i,j = 1}^d \Sigma^{(i,j)}\partial_{x_i,x_j}F-rF = 0
+\end{align}
+
+Where $b$ is the drift component in the Heston model, and $\Sigma=\sigma\sigma^T$ is the diffusion component from the Heston model, multiplied with itself transposed. Let $S_t = x$ and $V_t = v$. This implies that 
+
+\begin{align*} 
+\Sigma = \begin{bmatrix}
+    x \sqrt{v}\sqrt{1-\rho^2} & x\sqrt{v}\rho\\
+    0 & \sigma_V\sqrt{v}\\
+    \end{bmatrix}
+    \begin{bmatrix}
+    x \sqrt{v}\sqrt{1-\rho^2} & 0\\
+    x\sqrt{v}\rho & \sigma_V\sqrt{v}\\
+    \end{bmatrix}
+    = \begin{bmatrix}
+    x^2 v & x v \rho\sigma_V\\
+     x v \rho\sigma_V & \sigma_V^2v\\
+    \end{bmatrix}
+\end{align*}
+
+Using this, along with $b=\begin{bmatrix}
+r x \\ \alpha-\lambda v
+\end{bmatrix}$ yields by use of \eqref{eq:feynmann};
+
+\begin{align*}
+    \partial_t F + rx\partial_xF+(\alpha-\lambda v)\partial_vF+\frac{1}{2}x^2v\partial_{xx}F+\frac{1}{2}\sigma_V^2v\partial_{vv}F+\rho\sigma_Vvx\partial_{xv}F-rF = 0
+\end{align*}
+
+Hence $F$ solves this PDE. Defining now $G(\tau,x,v)=F(T-\tau,x,v)$, we see that $\partial_x G = \partial _x F$ and $\partial_v G = \partial_v F$. Hence the only thing left to show is that 
+
+\begin{align*}
+    \partial_t F = -\partial_\tau G
+\end{align*}
+
+By direct computation, we get
+
+\begin{align*}
+    \partial_\tau G(\tau,x,v) = \partial_\tau F(T-\tau,x,v) = \partial_{T-\tau} F(T-\tau,x,v)\partial_\tau (T-\tau) = -\partial_{T-\tau}F(T-\tau,x,v) = -\partial tF(t,x,v)
+\end{align*}
+ 
+with $t=T-\tau$. For the initial condition, we get
+
+$G(0,x,v)=F(T,x,v)=\exp{-r(T-T)}\CEx{\Q}{(S_T-K)^+|S_T=x, V_T=v} = (x-K)^+$
+
+
 
 ## 4.
 
-```{r}
+Using
 
-```
+\begin{align*}
+
+\end{align*}
 
 
 ## 5.
 
+\textbf{Finding approximations of the derivatives of G}
 
+\begin{align*}
+    \partial_\tau G(\tau_i,x_j,v_k) = \frac{G(\tau_{i+1},x_j,v_k)-G(\tau_{i},x_j,v_k)}{\Delta_{n}^{time}}
+\end{align*}
+
+\begin{align*}
+  \partial_x G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j+1},v_k)-G(\tau_{i},x_j,v_k)}{\Delta_{m}^{price}}
+\end{align*}
+
+\begin{align*}
+  \partial_v G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j},v_{k+1})-G(\tau_{i},x_j,v_k)}{\Delta_{q}^{vol}}
+\end{align*}
+
+\begin{align*}
+  \partial_{xx} G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j+1},v_{k})-2G(\tau_{i},x_j,v_k)+G(\tau_i,x_{j-1},v_k)}{(\Delta_{m}^{price})^2}
+\end{align*}
+
+\begin{align*}
+  \partial_{vv} G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j},v_{k+1})-2G(\tau_{i},x_j,v_k)+G(\tau_i,x_{j},v_{k-1})}{(\Delta_{q}^{vol})^2}
+\end{align*}
+
+\begin{align*}
+  \partial_{xv} G(\tau_i,x_j,v_k) = \frac{G(\tau_{i},x_{j+1}, v_{k+1})-2G(\tau_{i},x_{j}, v_k) + G(\tau_{i},x_{j-1}, v_{k-1})}{\Delta_{q}^{vol}\Delta_{m}^{price}}
+\end{align*}
+
+Inserting these into the differential equation yields (using $r = 0$) 
+
+\begin{align*}
+    &-\frac{G(\tau_{i+1},x_j,v_k)-G(\tau_{i},x_j,v_k)}{\Delta_{n}^{time}} + (\alpha-\lambda v_k) \frac{G(\tau_{i},x_{j},v_{k+1})-G(\tau_{i},x_j,v_k)}{\Delta_{q}^{vol}}\\
+    &+ \frac{1}{2} v_k x_i^2  \frac{G(\tau_{i},x_{j+1},v_{k})-2G(\tau_{i},x_j,v_k)+G(\tau_i,x_{j-1},v_k)}{(\Delta_{m}^{price})^2}\\ &+\frac{1}{2} \sigma^2_V v_k \frac{G(\tau_{i},x_{j},v_{k+1})-2G(\tau_{i},x_j,v_k)+G(\tau_i,x_{j},v_{k-1})}{(\Delta_{q}^{vol})^2}\\
+    &+ \sigma_V v_k\rho x_i \frac{G(\tau_{i},x_{j+1}, v_{k+1})-2G(\tau_{i},x_{j}, v_k) + G(\tau_{i},x_{j-1}, v_{k-1})}{\Delta_{q}^{vol}\Delta_{m}^{price}} = 0
+\end{align*}
+
+Hence
+
+
+\begin{align*}
+    G(\tau_{i+1},x_j,v_k)=\Bigg(&(\alpha-\lambda v_k) \frac{G(\tau_{i},x_{j},v_{k+1})-G(\tau_{i},x_j,v_k)}{\Delta_{q}^{vol}}\\
+    &+ \frac{1}{2} v_k x_i^2  \frac{G(\tau_{i},x_{j+1},v_{k})-2G(\tau_{i},x_j,v_k)+G(\tau_i,x_{j-1},v_k)}{(\Delta_{m}^{price})^2}\\ &+\frac{1}{2} \sigma^2_V v_k \frac{G(\tau_{i},x_{j},v_{k+1})-2G(\tau_{i},x_j,v_k)+G(\tau_i,x_{j},v_{k-1})}{(\Delta_{q}^{vol})^2}\\
+    &+ \sigma_V v_k\rho x_i \frac{G(\tau_{i},x_{j+1}, v_{k+1})-2G(\tau_{i},x_{j}, v_k) + G(\tau_{i},x_{j-1}, v_{k-1})}{\Delta_{q}^{vol}\Delta_{m}^{price}}\Bigg) \Delta_n^{time} + G(\tau_i,x_j,v_k)
+\end{align*}
+
+We need to be careful with the $\Delta$ parts, because if e.g. the quantity $\frac{\Delta_n^{time}}{\Delta_q^{vol}}$ explodes (if ${\Delta_q^{vol}}$ goes faster to 0 than $\Delta_n^{time}$), the approximation explodes, and thus becomes unstable. The same is true for the remaining $\Delta$ fractions, so there are all in all 4 conditions that needs to be met, in order for the approximation to work. 
 
 ```{r}
 
 G <- function(tau, x, v, K, x_max, v_max) {
   return(
-    case_when(tau == 0 ~ max(x - K, 0),
-              x == 0 ~ 0,
-              x == x_max ~ x_max,
-              v == 0 ~ max(x - 1, K),
-              v == v_max ~ x)
+    case_when(
+      tau == 0 ~ max(x - K, 0),
+      x == 0 ~ 0,
+      x == x_max ~ x_max,
+      v == 0 ~ max(x - 1, K),
+      v == v_max ~ x
     )
+  )
 }
 
-G_price <- function(df,t_,x_,v_) {
-  df %>% dplyr::filter(t == t_,
-                       x == x_,
-                       v == v_) %>% pull(price)
+G_price <- function(df, t_, x_, v_) {
+  df %>%
+    dplyr::filter(
+      t == t_,
+      x == x_,
+      v == v_
+    ) %>%
+    pull(price)
 }
 
 finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, K) {
@@ -168,12 +282,12 @@ finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, 
   t <- delta_n_time * 0:n_
   x <- x_min + 0:m_ * delta_m_price
   v <- v_min + delta_q_vol * 0:q_
-  
+
   result <- matrix(
     data = NA, nrow = (n_ + 1) * (m_ + 1) * (q_ + 1),
     ncol = 4, dimnames = list(c(), c("t", "x", "v", "price"))
   )
-  
+
   i <- 1
   for (t_ in t) {
     for (si_ in x) {
@@ -186,52 +300,46 @@ finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, 
       }
     }
   }
-  
+
   result_df <- result %>%
     as_tibble() %>%
-    rowwise() %>% 
-    mutate(price = G(tau = t,x = x,v = v,K = K,x_max = x_max,v_max = v_max)) %>%
+    rowwise() %>%
+    mutate(price = G(tau = t, x = x, v = v, K = K, x_max = x_max, v_max = v_max)) %>%
     ungroup()
-  
+
   for (i in 1:nrow(result_df)) {
-    if (is.na(result_df[i,"price"])) {
-      t_x_v_i <- result_df[i,c("t", "x", "v")]
-      
+    if (is.na(result_df[i, "price"])) {
+      t_x_v_i <- result_df[i, c("t", "x", "v")]
+
       t_i <- t[(which(t_x_v_i$t == t) - 1)]
       x_i <- t_x_v_i$x
       v_i <- t_x_v_i$v
-      
+
       d_v <- (G_price(result_df, t_i, x_i, v_i + delta_q_vol) -
-        G_price(result_df, t_i,x_i, v_i)) * delta_q_vol
-      
-      d_xx <- (G_price(result_df, t_i, x_i + delta_m_price, v_i) - 
-                 2 * G_price(result_df, t_i, x_i, v_i) +
-                 G_price(result_df, t_i, x_i - delta_m_price, v_i)) / (delta_m_price^2)      
-      
+        G_price(result_df, t_i, x_i, v_i)) * delta_q_vol
+
+      d_xx <- (G_price(result_df, t_i, x_i + delta_m_price, v_i) -
+        2 * G_price(result_df, t_i, x_i, v_i) +
+        G_price(result_df, t_i, x_i - delta_m_price, v_i)) / (delta_m_price^2)
+
       d_vv <- (G_price(result_df, t_i, x_i, v_i + delta_q_vol) -
-                 2 * G_price(result_df, t_i, x_i, v_i) +
-                 G_price(result_df, t_i, x_i, v_i - delta_q_vol)) / (delta_q_vol^2)
-      
+        2 * G_price(result_df, t_i, x_i, v_i) +
+        G_price(result_df, t_i, x_i, v_i - delta_q_vol)) / (delta_q_vol^2)
+
       d_xv <- (G_price(result_df, t_i, x_i + delta_m_price, v_i + delta_q_vol) -
-                 G_price(result_df, t_i, x_i, v_i) +
-                 G_price(result_df, t_i, x_i - delta_m_price, v_i - delta_q_vol)) / 
+        G_price(result_df, t_i, x_i, v_i) +
+        G_price(result_df, t_i, x_i - delta_m_price, v_i - delta_q_vol)) /
         (delta_m_price * delta_q_vol)
-      
+
       result_df[i, "price"] <- G_price(result_df, t_i, x_i, v_i) + delta_n_time * (
-        (0.5 + 0.5 * v_i) * d_v + (1/2) * (x_i^2) * v_i * d_xx + (1/2) * (0.4^2) * v_i * d_vv -
+        (0.5 + 0.5 * v_i) * d_v + (1 / 2) * (x_i^2) * v_i * d_xx + (1 / 2) * (0.4^2) * v_i * d_vv -
           0.7 * 0.4 * v_i * x_i * d_xv
       )
     }
   }
-  
+
   return(result_df)
-  
 }
-
-
-
-
-
 ```
 
 
@@ -239,35 +347,43 @@ finite_difference_approx <- function(n_, m_, q_, x_min, x_max, v_min, v_max, T, 
 
 ```{r}
 
-ex_6 <- finite_difference_approx(n_ = 100, m_ = 10, q_ = 10,
+ex_6 <- finite_difference_approx(
+  n_ = 100, m_ = 10, q_ = 10,
   x_min = 0, x_max = 10, v_min = 0,
-  v_max = 10, T = 1, K = 1)
-
-
+  v_max = 10, T = 1, K = 1
+)
 ```
 
 
 ## 7.
 
 ```{r}
-plot_data <- ex_6 %>% mutate(t = 1 - t,
-                             metode = "finite_difference") %>% 
-  union(., ex_2 %>% as_tibble() %>% 
-               mutate(metode = "monte_carlo") %>% 
-               rename(x = si,
-                      v = y))
+plot_data <- ex_6 %>%
+  mutate(
+    t = 1 - t,
+    metode = "finite_difference"
+  ) %>%
+  bind_rows(., ex_2 %>% as_tibble() %>%
+    mutate(metode = "monte_carlo") %>%
+    rename(
+      x = si,
+      v = y
+    ))
 
 plot_difference <- ggplot(data = plot_data) +
-  coord_cartesian(ylim = c(-2,20))
+  coord_cartesian(ylim = c(-2, 20))
+
+# we get some extreme results from the finite difference method, aswell as negavtive prices
 
 plot_difference + geom_point(aes(x = x, y = price, color = metode))
 plot_difference + geom_point(aes(x = v, y = price, color = metode))
 plot_difference + geom_point(aes(x = t, y = price, color = metode))
-
 ```
 
 
 ## 8.
+
+
 
 
 # Exercise 2.
@@ -275,19 +391,102 @@ plot_difference + geom_point(aes(x = t, y = price, color = metode))
 ## 1.
 
 ```{r}
+X_t <- function(M, n, t, T, r, b, sigma, x) {
+  if (T - t < 0.0001) {
+    return(payoff(x, K))
+  } else {
+    delta_n <- (T - t) / n
+  }
+  Xf <- matrix(NA, nrow=(n+1), ncol=2)
+  # print(delta_n)
+  last_obs <- matrix(NA, nrow = M, ncol = 2)
+  for (j in 1:M) {
+    bm1 <- diff(sim_BM(T_ = T, delta = delta_n))
+    bm2 <- diff(sim_BM(T_ = T, delta = delta_n))
+    bm <- cbind(bm1, bm2)
+    X <- matrix(NA, nrow = n + 1, ncol = 2, byrow = TRUE)
+    X[1, ] <- x
+    for (k in 1:n) {
+      # print(delta_n * b(X[k, ]))
+      # print(sigma(X[k, ]) %*% bm[k, ])
+      # print(n)
+      # print(k)
+      X[k + 1, ] <- X[k, ] + delta_n * b(X[k, ]) + sigma(X[k, ]) %*% bm[k, ]
+    }
+  }
+  Xf[,1] <- log(X[,1])
+  Xf[,2] <- X[,2]
+  return(Xf)
+}
 
+
+plot.ts(X_t(M=1, n=10000, t=0, T=1, b=b, sigma=sigma, x=c(1,0.3)))
 ```
 
 
 ## 2.
 
 ```{r}
-
+iv <- matrix(NA, nrow=100000, ncol = 4)
+theta <- matrix(NA, nrow=100000, ncol = 4)
+n <- 10
+for(i in 1:4){
+  print(i)
+  n <- n*10
+  X_t_1 <- X_t(M=1, n=n, t=0, T=1, r=0, b=b, sigma=sigma, x=c(1,0.3))
+  iv[1:n,i] <- cumsum(diff(X_t_1[,2])^2)
+  theta[1:n,i] <- cumsum(diff(X_t_1[,1])^2)
+}
 ```
 
 
 ## 3.
 
 ```{r}
+iv <- matrix(NA, nrow=100000, ncol = 4)
+theta <- matrix(NA, nrow=100000, ncol = 4)
+n <- 10
+for(i in 1:4){
+  n <- n*10
+  X_t_1 <- X_t(M=1, n=n, t=0, T=1, r=0, b=b, sigma=sigma, x=c(1,0.3))
+  iv[1:n,i] <- cumsum(diff(X_t_1[,2])^2)
+  theta[1:n,i] <- cumsum(diff(X_t_1[,1])^2)
+}
+
+hat_sigma <- function(k, t, x_t) {
+  aa <- 1/(1/n*k)*sum(diff(x_t[t:(t+k)])^2)
+  aa
+}
+
+
+hat_sigma_forall_n <- c()
+k <- 20
+p <- 10000
+for (i in 1:p){
+  hat_sigma_forall_n[i] <- hat_sigma(k,i, X_t_1[,1])
+}
+
+lower_upper_bounds_iv <- sqrt(2/3 * cumsum(diff(X_t_1[,2])^4))
+
+upper_conf_iv <- iv[,4] + 1.96 * lower_upper_bounds_iv
+lower_conf_iv <- iv[,4] - 1.96 * lower_upper_bounds_iv
+tibble1 <- tibble(upper_conf = upper_conf_iv, lower_conf =lower_conf_iv, implied_vol = iv[,4])
+
+ggplot(data=tibble1,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble1)))) +
+  geom_line(aes(y = upper_conf), color="blue") + 
+  geom_line(aes(y=lower_conf), color="blue") + 
+  geom_line(aes(y=implied_vol))
+
+
+lower_upper_bounds_sigma <- sqrt(2/k *hat_sigma_forall_n^2)
+upper_conf_sigma <- hat_sigma_forall_n + 1.96 * lower_upper_bounds_sigma
+lower_conf_sigma <- hat_sigma_forall_n - 1.96 * lower_upper_bounds_sigma
+tibble2 <- tibble(upper_conf = upper_conf_sigma, lower_conf =lower_conf_sigma, sigma_hat = hat_sigma_forall_n)
+
+ggplot(data=tibble2,  aes(x=seq(from = 0, to = 1, length.out = nrow(tibble2)))) +
+  geom_line(aes(y = upper_conf), color="blue") + 
+  geom_line(aes(y=lower_conf), color="blue") + 
+  geom_line(aes(y=sigma_hat))
+
 
 ```
